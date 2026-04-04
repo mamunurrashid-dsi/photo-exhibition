@@ -1,0 +1,216 @@
+import { v4 as uuidv4 } from 'uuid'
+import Exhibition from '../models/Exhibition.js'
+import Photo from '../models/Photo.js'
+import { deleteImage, getThumbnailUrl } from '../services/cloudinary.service.js'
+import { LIMITS } from '../config/limits.js'
+
+export async function getExhibitions(req, res, next) {
+  try {
+    const { type, status, search, page = 1, limit = 12 } = req.query
+    const filter = { visibility: 'public' }
+    if (type) filter.type = type
+    if (status) filter.status = status
+    if (search) filter.title = { $regex: search, $options: 'i' }
+
+    const skip = (Number(page) - 1) * Number(limit)
+    const [exhibitions, total] = await Promise.all([
+      Exhibition.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .select('-privateToken -allowedEmailDomain'),
+      Exhibition.countDocuments(filter),
+    ])
+
+    res.json({
+      success: true,
+      exhibitions,
+      total,
+      totalPages: Math.ceil(total / Number(limit)),
+      page: Number(page),
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function getMyExhibitions(req, res, next) {
+  try {
+    const exhibitions = await Exhibition.find({ createdBy: req.user._id }).sort({ createdAt: -1 })
+    res.json({ success: true, exhibitions })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function getExhibition(req, res, next) {
+  try {
+    const exhibition = await Exhibition.findById(req.params.id).populate('createdBy', 'name email')
+    if (!exhibition) {
+      return res.status(404).json({ success: false, message: 'Exhibition not found' })
+    }
+
+    const data = exhibition.toObject()
+    if (exhibition.visibility === 'private') {
+      delete data.privateToken
+      delete data.allowedEmailDomain
+    }
+
+    res.json({ success: true, exhibition: data })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function getPrivateExhibition(req, res, next) {
+  try {
+    const exhibition = await Exhibition.findOne({ privateToken: req.params.token })
+    if (!exhibition) {
+      return res.status(404).json({ success: false, message: 'Exhibition not found' })
+    }
+
+    const data = exhibition.toObject()
+    delete data.privateToken
+    res.json({ success: true, exhibition: data })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function verifyPrivateAccess(req, res, next) {
+  try {
+    const exhibition = await Exhibition.findOne({ privateToken: req.params.token })
+    if (!exhibition) {
+      return res.status(404).json({ success: false, message: 'Exhibition not found' })
+    }
+
+    if (exhibition.allowedEmailDomain) {
+      const { email } = req.body
+      if (!email) {
+        return res.status(400).json({ success: false, message: 'Email is required' })
+      }
+      const domain = email.split('@')[1]?.toLowerCase()
+      if (domain !== exhibition.allowedEmailDomain) {
+        return res.status(403).json({
+          success: false,
+          message: `Access is restricted to @${exhibition.allowedEmailDomain} email addresses.`,
+        })
+      }
+    }
+
+    res.json({ success: true, message: 'Access granted' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function getExhibitionGallery(req, res, next) {
+  try {
+    const { category } = req.query
+    const filter = { exhibition: req.params.id, status: 'approved' }
+    if (category) filter.category = category.toLowerCase()
+
+    const photos = await Photo.find(filter).sort({ createdAt: -1 }).select('-submission')
+    res.json({ success: true, photos })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function createExhibition(req, res, next) {
+  try {
+    const { type, visibility } = req.body
+    const data = { ...req.body, createdBy: req.user._id }
+
+    if (type === 'online') {
+      const count = await Exhibition.countDocuments({ createdBy: req.user._id, type: 'online' })
+      if (count >= LIMITS.MAX_ONLINE_EXHIBITIONS_PER_ORGANIZER) {
+        return res.status(400).json({
+          success: false,
+          message: `You can create at most ${LIMITS.MAX_ONLINE_EXHIBITIONS_PER_ORGANIZER} online exhibitions.`,
+        })
+      }
+    }
+
+    if (req.file) {
+      data.coverImageUrl = req.file.path
+      data.coverImagePublicId = req.file.filename
+    }
+
+    if (type === 'online' && visibility === 'private') {
+      data.privateToken = uuidv4()
+    }
+
+    if (typeof data.categories === 'string') {
+      try {
+        data.categories = JSON.parse(data.categories)
+      } catch {
+        data.categories = data.categories.split(',').map((c) => c.trim().toLowerCase())
+      }
+    }
+
+    const exhibition = await Exhibition.create(data)
+    res.status(201).json({ success: true, exhibition: exhibition.toObject() })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function updateExhibition(req, res, next) {
+  try {
+    const exhibition = await Exhibition.findById(req.params.id)
+    if (!exhibition) {
+      return res.status(404).json({ success: false, message: 'Exhibition not found' })
+    }
+
+    if (
+      exhibition.createdBy.toString() !== req.user._id.toString() &&
+      req.user.role !== 'admin'
+    ) {
+      return res.status(403).json({ success: false, message: 'Not authorized' })
+    }
+
+    const updates = { ...req.body }
+
+    if (req.file) {
+      if (exhibition.coverImagePublicId) await deleteImage(exhibition.coverImagePublicId)
+      updates.coverImageUrl = req.file.path
+      updates.coverImagePublicId = req.file.filename
+    }
+
+    if (typeof updates.categories === 'string') {
+      try {
+        updates.categories = JSON.parse(updates.categories)
+      } catch {
+        updates.categories = updates.categories.split(',').map((c) => c.trim().toLowerCase())
+      }
+    }
+
+    const updated = await Exhibition.findByIdAndUpdate(req.params.id, updates, { new: true })
+    res.json({ success: true, exhibition: updated })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function deleteExhibition(req, res, next) {
+  try {
+    const exhibition = await Exhibition.findById(req.params.id)
+    if (!exhibition) {
+      return res.status(404).json({ success: false, message: 'Exhibition not found' })
+    }
+
+    if (
+      exhibition.createdBy.toString() !== req.user._id.toString() &&
+      req.user.role !== 'admin'
+    ) {
+      return res.status(403).json({ success: false, message: 'Not authorized' })
+    }
+
+    if (exhibition.coverImagePublicId) await deleteImage(exhibition.coverImagePublicId)
+    await exhibition.deleteOne()
+    res.json({ success: true, message: 'Exhibition deleted' })
+  } catch (err) {
+    next(err)
+  }
+}
