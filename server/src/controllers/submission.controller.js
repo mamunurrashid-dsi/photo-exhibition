@@ -13,13 +13,14 @@ export async function createSubmission(req, res, next) {
     const {
       exhibitionId,
       submitterName,
-      submitterEmail,
       instagramHandle,
       termsAccepted,
       photoTitles,
       photoCategories,
       photoGears,
     } = req.body
+
+    const submitterEmail = req.user.email.toLowerCase().trim()
 
     const exhibition = await Exhibition.findById(exhibitionId)
     if (!exhibition || exhibition.type !== 'online') {

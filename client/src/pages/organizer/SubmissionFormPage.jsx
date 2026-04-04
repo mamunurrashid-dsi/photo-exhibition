@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,23 +10,26 @@ import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import Spinner from '../../components/ui/Spinner'
 import { useToast } from '../../context/ToastContext'
+import { useAuth } from '../../context/AuthContext'
 import { isSubmissionOpen } from '../../utils/formatDate'
 
 const schema = z.object({
   submitterName: z.string().min(2, 'Full name is required'),
-  submitterEmail: z.string().email('Valid email is required'),
   instagramHandle: z.string().optional(),
   termsAccepted: z.literal(true, { errorMap: () => ({ message: 'You must accept the terms and conditions' }) }),
 })
 
 export default function SubmissionFormPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const { addToast } = useToast()
+  const { user, loading: authLoading } = useAuth()
+
   const [exhibition, setExhibition] = useState(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-
   const [alreadySubmitted, setAlreadySubmitted] = useState(false)
 
   // Per-category photo state
@@ -37,26 +40,41 @@ export default function SubmissionFormPage() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema) })
 
+  // Redirect to login if not authenticated
   useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login', { state: { from: location } })
+    }
+  }, [authLoading, user])
+
+  // Pre-fill name from user profile once available
+  useEffect(() => {
+    if (user) {
+      reset({ submitterName: user.name || '' })
+    }
+  }, [user])
+
+  // Load exhibition and check for duplicate submission
+  useEffect(() => {
+    if (!user) return
     getExhibition(id)
-      .then((res) => setExhibition(res.data.exhibition))
+      .then(async (res) => {
+        setExhibition(res.data.exhibition)
+        // Check if this user already submitted
+        try {
+          const check = await checkDuplicate(id, user.email)
+          setAlreadySubmitted(check.data.hasSubmitted)
+        } catch {
+          // silently ignore
+        }
+      })
       .catch(() => addToast('Exhibition not found', 'error'))
       .finally(() => setLoading(false))
-  }, [id])
-
-  const handleEmailBlur = async (e) => {
-    const email = e.target.value.trim()
-    if (!email || !exhibition) return
-    try {
-      const res = await checkDuplicate(id, email)
-      setAlreadySubmitted(res.data.hasSubmitted)
-    } catch {
-      // silently ignore — server will enforce on submit
-    }
-  }
+  }, [id, user])
 
   const updatePhotoField = (category, field, value) => {
     setPhotoData((prev) => ({
@@ -111,7 +129,6 @@ export default function SubmissionFormPage() {
     const formData = new FormData()
     formData.append('exhibitionId', id)
     formData.append('submitterName', data.submitterName)
-    formData.append('submitterEmail', data.submitterEmail)
     formData.append('instagramHandle', data.instagramHandle || '')
     formData.append('termsAccepted', 'true')
     formData.append('photoTitles', JSON.stringify(titles))
@@ -130,7 +147,7 @@ export default function SubmissionFormPage() {
     }
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <Spinner size="lg" />
@@ -209,38 +226,44 @@ export default function SubmissionFormPage() {
           {/* Personal info */}
           <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
             <h2 className="font-semibold text-gray-900">Your Information</h2>
+
+            {/* Email from profile — read only */}
+            <div>
+              <label className={labelClass}>Email Address</label>
+              <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                </svg>
+                <span className="flex-1">{user?.email}</span>
+                <span className="text-xs text-gray-400">from your account</span>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Full Name *</label>
-                <input type="text" autoComplete="name" {...register('submitterName')} className={inputClass} />
+                <label className={labelClass}>Display Name *</label>
+                <input
+                  type="text"
+                  autoComplete="name"
+                  {...register('submitterName')}
+                  className={inputClass}
+                  placeholder="Name shown on your photos"
+                />
                 {errors.submitterName && (
                   <p className="text-red-600 text-xs mt-1">{errors.submitterName.message}</p>
                 )}
               </div>
               <div>
-                <label className={labelClass}>Email Address *</label>
-                <input
-                  type="email"
-                  autoComplete="email"
-                  {...register('submitterEmail')}
-                  onBlur={handleEmailBlur}
-                  className={inputClass}
-                />
-                {errors.submitterEmail && (
-                  <p className="text-red-600 text-xs mt-1">{errors.submitterEmail.message}</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className={labelClass}>Instagram Handle (optional)</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">@</span>
-                <input
-                  type="text"
-                  {...register('instagramHandle')}
-                  className={`${inputClass} pl-7`}
-                  placeholder="yourhandle"
-                />
+                <label className={labelClass}>Instagram Handle (optional)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">@</span>
+                  <input
+                    type="text"
+                    {...register('instagramHandle')}
+                    className={`${inputClass} pl-7`}
+                    placeholder="yourhandle"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -338,7 +361,7 @@ export default function SubmissionFormPage() {
 
           {alreadySubmitted && (
             <div className="bg-amber-50 border border-amber-300 rounded-xl px-5 py-4 text-sm text-amber-800">
-              <strong>Already submitted.</strong> This email address has already been used to submit to this exhibition. Each person may submit only once.
+              <strong>Already submitted.</strong> Your account has already submitted to this exhibition. Each account may submit only once.
             </div>
           )}
 

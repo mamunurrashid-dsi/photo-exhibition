@@ -20,7 +20,7 @@ const uploadLimiter = rateLimit({
   message: { success: false, message: 'Too many submissions from this IP. Please try again later.' },
 })
 
-router.post('/', uploadLimiter, submissionUpload.array('photos', 20), createSubmission)
+router.post('/', verifyToken, uploadLimiter, submissionUpload.array('photos', 20), createSubmission)
 router.get('/check', checkDuplicateSubmission)
 router.get('/exhibition/:exhibitionId', verifyToken, getSubmissions)
 router.get('/:id', verifyToken, getSubmission)
