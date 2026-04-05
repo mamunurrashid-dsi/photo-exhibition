@@ -2,9 +2,11 @@ import User from '../models/User.js'
 import Exhibition from '../models/Exhibition.js'
 import Submission from '../models/Submission.js'
 import Photo from '../models/Photo.js'
+import Rating from '../models/Rating.js'
+import Comment from '../models/Comment.js'
 import { deleteImage } from '../services/cloudinary.service.js'
 
-export async function getStats(req, res, next) {
+export async function getStats(_req, res, next) {
   try {
     const [users, exhibitions, submissions, photos] = await Promise.all([
       User.countDocuments(),
@@ -106,8 +108,12 @@ export async function deleteExhibition(req, res, next) {
 
     if (exhibition.coverImagePublicId) await deleteImage(exhibition.coverImagePublicId)
 
-    const photos = await Photo.find({ exhibition: exhibition._id })
+    const photos = await Photo.find({ exhibition: exhibition._id }).select('_id cloudinaryPublicId')
+    const photoIds = photos.map((p) => p._id)
+
     await Promise.all(photos.map((p) => deleteImage(p.cloudinaryPublicId)))
+    await Rating.deleteMany({ photo: { $in: photoIds } })
+    await Comment.deleteMany({ photo: { $in: photoIds } })
     await Photo.deleteMany({ exhibition: exhibition._id })
     await Submission.deleteMany({ exhibition: exhibition._id })
     await exhibition.deleteOne()
@@ -144,8 +150,12 @@ export async function deleteSubmission(req, res, next) {
     const submission = await Submission.findById(req.params.id)
     if (!submission) return res.status(404).json({ success: false, message: 'Submission not found' })
 
-    const photos = await Photo.find({ submission: submission._id })
+    const photos = await Photo.find({ submission: submission._id }).select('_id cloudinaryPublicId')
+    const photoIds = photos.map((p) => p._id)
+
     await Promise.all(photos.map((p) => deleteImage(p.cloudinaryPublicId)))
+    await Rating.deleteMany({ photo: { $in: photoIds } })
+    await Comment.deleteMany({ photo: { $in: photoIds } })
     await Photo.deleteMany({ submission: submission._id })
     await submission.deleteOne()
 

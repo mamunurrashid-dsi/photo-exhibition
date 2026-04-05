@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 import Exhibition from '../models/Exhibition.js'
 import Photo from '../models/Photo.js'
+import Submission from '../models/Submission.js'
+import Rating from '../models/Rating.js'
+import Comment from '../models/Comment.js'
 import { deleteImage } from '../services/cloudinary.service.js'
 import { LIMITS } from '../config/limits.js'
 
@@ -208,7 +211,17 @@ export async function deleteExhibition(req, res, next) {
     }
 
     if (exhibition.coverImagePublicId) await deleteImage(exhibition.coverImagePublicId)
+
+    const photos = await Photo.find({ exhibition: exhibition._id }).select('_id cloudinaryPublicId')
+    const photoIds = photos.map((p) => p._id)
+
+    await Promise.all(photos.map((p) => deleteImage(p.cloudinaryPublicId)))
+    await Rating.deleteMany({ photo: { $in: photoIds } })
+    await Comment.deleteMany({ photo: { $in: photoIds } })
+    await Photo.deleteMany({ exhibition: exhibition._id })
+    await Submission.deleteMany({ exhibition: exhibition._id })
     await exhibition.deleteOne()
+
     res.json({ success: true, message: 'Exhibition deleted' })
   } catch (err) {
     next(err)
