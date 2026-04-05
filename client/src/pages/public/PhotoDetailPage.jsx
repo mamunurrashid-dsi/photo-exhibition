@@ -193,8 +193,8 @@ export default function PhotoDetailPage() {
             Comments {comments.length > 0 && <span className="text-gray-400 font-normal">({comments.length})</span>}
           </h2>
 
-          {/* Add comment — hidden for the photo's own submitter */}
-          {photo.submitterUser && photo.submitterUser === user?._id ? null : user ? (
+          {/* Add comment */}
+          {user ? (
             <form onSubmit={handleComment} className="mb-6">
               <textarea
                 value={commentText}
