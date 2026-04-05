@@ -64,7 +64,8 @@ export default function ExhibitionsPage() {
           className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           aria-label="Search exhibitions"
         />
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide shrink-0">Type</span>
           {TYPES.map((t) => (
             <button
               key={t}
@@ -79,7 +80,8 @@ export default function ExhibitionsPage() {
             </button>
           ))}
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide shrink-0">Status</span>
           {STATUSES.map((s) => (
             <button
               key={s}
