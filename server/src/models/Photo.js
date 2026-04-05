@@ -49,6 +49,19 @@ const photoSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    submitterUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    avgRating: {
+      type: Number,
+      default: 0,
+    },
+    ratingCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 )

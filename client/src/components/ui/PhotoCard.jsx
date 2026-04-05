@@ -1,5 +1,16 @@
+function Stars({ value, max = 5 }) {
+  const filled = Math.round(value)
+  return (
+    <span className="text-xs" aria-label={`${value} out of ${max} stars`}>
+      {Array.from({ length: max }, (_, i) => (
+        <span key={i} className={i < filled ? 'text-amber-400' : 'text-gray-400'}>★</span>
+      ))}
+    </span>
+  )
+}
+
 export default function PhotoCard({ photo, onClick }) {
-  const { title, submitterName, thumbnailUrl, imageUrl, cameraGear } = photo
+  const { title, submitterName, thumbnailUrl, imageUrl, cameraGear, avgRating, ratingCount } = photo
 
   return (
     <button
@@ -22,6 +33,12 @@ export default function PhotoCard({ photo, onClick }) {
         )}
         {cameraGear && (
           <p className="text-white/50 text-xs truncate">{cameraGear}</p>
+        )}
+        {ratingCount > 0 && (
+          <div className="flex items-center gap-1 mt-0.5">
+            <Stars value={avgRating} />
+            <span className="text-white/50 text-xs">({ratingCount})</span>
+          </div>
         )}
       </div>
     </button>

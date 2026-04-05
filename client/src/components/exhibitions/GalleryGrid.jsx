@@ -1,14 +1,25 @@
 import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import PhotoCard from '../ui/PhotoCard'
 import Lightbox from 'yet-another-react-lightbox'
 import 'yet-another-react-lightbox/styles.css'
+
+function Stars({ value, max = 5 }) {
+  const filled = Math.round(value)
+  return (
+    <span aria-label={`${value} out of ${max} stars`}>
+      {Array.from({ length: max }, (_, i) => (
+        <span key={i} style={{ color: i < filled ? '#fbbf24' : 'rgba(255,255,255,0.25)' }}>★</span>
+      ))}
+    </span>
+  )
+}
 
 export default function GalleryGrid({ photos, categories }) {
   const [activeCategory, setActiveCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [lightboxIndex, setLightboxIndex] = useState(-1)
 
-  // Step 1 — text search across title, submitter name, camera gear
   const searched = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
     if (!q) return photos
@@ -20,15 +31,17 @@ export default function GalleryGrid({ photos, categories }) {
     )
   }, [photos, searchQuery])
 
-  // Step 2 — category filter on top of search results
   const displayed =
     activeCategory === 'all' ? searched : searched.filter((p) => p.category === activeCategory)
 
   const slides = displayed.map((p) => ({
     src: p.imageUrl,
+    photoId: p._id,
     title: p.title,
     submitterName: p.submitterName,
     cameraGear: p.cameraGear,
+    avgRating: p.avgRating || 0,
+    ratingCount: p.ratingCount || 0,
   }))
 
   const handleCategoryChange = (cat) => {
@@ -38,7 +51,7 @@ export default function GalleryGrid({ photos, categories }) {
 
   return (
     <div>
-      {/* Search box */}
+      {/* Search */}
       <div className="mb-4">
         <input
           type="search"
@@ -50,7 +63,7 @@ export default function GalleryGrid({ photos, categories }) {
         />
       </div>
 
-      {/* Category tabs — counts reflect current search results */}
+      {/* Category tabs */}
       {categories.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-6">
           <button
@@ -99,7 +112,7 @@ export default function GalleryGrid({ photos, categories }) {
         close={() => setLightboxIndex(-1)}
         slides={slides}
         index={lightboxIndex}
-        styles={{ slide: { paddingBottom: '80px' } }}
+        styles={{ slide: { paddingBottom: '100px' } }}
         render={{
           slideFooter: ({ slide }) => (
             <div
@@ -108,14 +121,14 @@ export default function GalleryGrid({ photos, categories }) {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: '80px',
+                minHeight: '100px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '4px',
-                background: 'rgba(0,0,0,0.75)',
-                padding: '0 24px',
+                background: 'rgba(0,0,0,0.80)',
+                padding: '12px 24px',
               }}
             >
               <p style={{ color: '#fff', fontSize: '14px', fontWeight: 600, margin: 0, textAlign: 'center' }}>
@@ -126,6 +139,26 @@ export default function GalleryGrid({ photos, categories }) {
                   {[slide.submitterName, slide.cameraGear].filter(Boolean).join(' · ')}
                 </p>
               )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '2px 0' }}>
+                <Stars value={slide.avgRating} />
+                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>
+                  {slide.ratingCount > 0
+                    ? `${slide.avgRating.toFixed(1)} (${slide.ratingCount})`
+                    : 'No ratings yet'}
+                </span>
+              </div>
+              <Link
+                to={`/photos/${slide.photoId}`}
+                style={{
+                  marginTop: '4px',
+                  fontSize: '12px',
+                  color: '#a5b4fc',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                }}
+              >
+                Rate &amp; Comments
+              </Link>
             </div>
           ),
         }}

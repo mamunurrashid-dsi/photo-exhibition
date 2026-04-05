@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import Exhibition from '../models/Exhibition.js'
 import Photo from '../models/Photo.js'
-import { deleteImage, getThumbnailUrl } from '../services/cloudinary.service.js'
+import { deleteImage } from '../services/cloudinary.service.js'
 import { LIMITS } from '../config/limits.js'
 
 export async function getExhibitions(req, res, next) {
@@ -110,7 +110,7 @@ export async function getExhibitionGallery(req, res, next) {
     const filter = { exhibition: req.params.id, status: 'approved' }
     if (category) filter.category = category.toLowerCase()
 
-    const photos = await Photo.find(filter).sort({ createdAt: -1 }).select('-submission')
+    const photos = await Photo.find(filter).sort({ avgRating: -1, createdAt: -1 }).select('-submission')
     res.json({ success: true, photos })
   } catch (err) {
     next(err)

@@ -104,6 +104,7 @@ export async function createSubmission(req, res, next) {
         imageUrl,
         thumbnailUrl,
         submitterName,
+        submitterUser: req.user._id,
       })
     })
 

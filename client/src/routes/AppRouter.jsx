@@ -11,6 +11,7 @@ import Home from '../pages/public/Home'
 import ExhibitionsPage from '../pages/public/ExhibitionsPage'
 import ExhibitionDetailPage from '../pages/public/ExhibitionDetailPage'
 import PrivateExhibitionPage from '../pages/public/PrivateExhibitionPage'
+import PhotoDetailPage from '../pages/public/PhotoDetailPage'
 import NotFound from '../pages/public/NotFound'
 
 // Auth pages
@@ -50,6 +51,7 @@ export default function AppRouter() {
             <Route path="/exhibitions" element={<ExhibitionsPage />} />
             <Route path="/exhibitions/:id" element={<ExhibitionDetailPage />} />
             <Route path="/e/:token" element={<PrivateExhibitionPage />} />
+            <Route path="/photos/:id" element={<PhotoDetailPage />} />
 
             {/* Auth */}
             <Route path="/login" element={<LoginPage />} />
