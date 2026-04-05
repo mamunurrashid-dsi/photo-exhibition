@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Button from '../ui/Button'
@@ -14,6 +14,7 @@ const baseSchema = z.object({
 const onlineSchema = baseSchema.extend({
   visibility: z.enum(['public', 'private']),
   allowedEmailDomain: z.string().optional(),
+  allowSubmissionFromOthers: z.boolean().optional(),
   submissionStartDate: z.string().min(1, 'Start date is required'),
   submissionEndDate: z.string().min(1, 'End date is required'),
 })
@@ -38,7 +39,6 @@ export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
@@ -174,6 +174,25 @@ export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }
               />
               <p className="text-xs text-gray-400 mt-1">
                 Restrict access to viewers with this email domain. Leave blank for any email.
+              </p>
+            </div>
+          </div>
+
+          {/* Submission access */}
+          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <input
+              type="checkbox"
+              id="allowSubmissionFromOthers"
+              defaultChecked={defaultValues.allowSubmissionFromOthers !== false}
+              {...register('allowSubmissionFromOthers')}
+              className="mt-0.5 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+            />
+            <div>
+              <label htmlFor="allowSubmissionFromOthers" className="text-sm font-medium text-gray-700 cursor-pointer">
+                Allow submissions from other users
+              </label>
+              <p className="text-xs text-gray-400 mt-0.5">
+                When unchecked, only you (the organizer) can submit photos to this exhibition.
               </p>
             </div>
           </div>

@@ -63,13 +63,19 @@ export default function SubmissionFormPage() {
     if (!user) return
     getExhibition(id)
       .then(async (res) => {
-        setExhibition(res.data.exhibition)
-        // Check if this user already submitted
-        try {
-          const check = await checkDuplicate(id, user.email)
-          setAlreadySubmitted(check.data.hasSubmitted)
-        } catch {
-          // silently ignore
+        const exh = res.data.exhibition
+        setExhibition(exh)
+        // Owners can submit multiple times — only check duplicates for other users
+        const ownerCheck =
+          exh.createdBy?._id?.toString() === user._id?.toString() ||
+          exh.createdBy?.toString() === user._id?.toString()
+        if (!ownerCheck) {
+          try {
+            const check = await checkDuplicate(id, user.email)
+            setAlreadySubmitted(check.data.hasSubmitted)
+          } catch {
+            // silently ignore — server will enforce on submit
+          }
         }
       })
       .catch(() => addToast('Exhibition not found', 'error'))
@@ -165,6 +171,10 @@ export default function SubmissionFormPage() {
     )
   }
 
+  const isOwner =
+    exhibition.createdBy?._id?.toString() === user?._id?.toString() ||
+    exhibition.createdBy?.toString() === user?._id?.toString()
+
   if (!isSubmissionOpen(exhibition.submissionStartDate, exhibition.submissionEndDate)) {
     return (
       <PageWrapper>
@@ -172,6 +182,23 @@ export default function SubmissionFormPage() {
           <div className="text-4xl mb-4">🔒</div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Submissions Closed</h2>
           <p className="text-gray-500">The submission window for this exhibition is not currently open.</p>
+          <Link to={`/exhibitions/${id}`} className="mt-4 inline-block text-indigo-600 hover:underline">
+            Back to exhibition
+          </Link>
+        </div>
+      </PageWrapper>
+    )
+  }
+
+  if (!isOwner && !exhibition.allowSubmissionFromOthers) {
+    return (
+      <PageWrapper>
+        <div className="text-center py-20 max-w-md mx-auto">
+          <div className="text-4xl mb-4">🚫</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Organizer Submissions Only</h2>
+          <p className="text-gray-500">
+            This exhibition only accepts submissions from the organizer.
+          </p>
           <Link to={`/exhibitions/${id}`} className="mt-4 inline-block text-indigo-600 hover:underline">
             Back to exhibition
           </Link>

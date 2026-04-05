@@ -53,6 +53,10 @@ const exhibitionSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    allowSubmissionFromOthers: {
+      type: Boolean,
+      default: true,
+    },
     categories: {
       type: [String],
       default: [],

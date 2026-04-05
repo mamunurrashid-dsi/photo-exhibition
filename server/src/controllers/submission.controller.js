@@ -42,15 +42,24 @@ export async function createSubmission(req, res, next) {
       })
     }
 
-    const existing = await Submission.findOne({
-      exhibition: exhibitionId,
-      submitterEmail: submitterEmail.toLowerCase().trim(),
-    })
-    if (existing) {
-      return res.status(400).json({
+    const isOwner = exhibition.createdBy.toString() === req.user._id.toString()
+
+    if (!isOwner && !exhibition.allowSubmissionFromOthers) {
+      return res.status(403).json({
         success: false,
-        message: 'You have already submitted to this exhibition.',
+        message: 'This exhibition only accepts submissions from the organizer.',
       })
+    }
+
+    // Owners can submit multiple times; other users are limited to one submission each
+    if (!isOwner) {
+      const existing = await Submission.findOne({ exhibition: exhibitionId, submitterEmail })
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: 'You have already submitted to this exhibition.',
+        })
+      }
     }
 
     const titles = JSON.parse(photoTitles || '[]')
