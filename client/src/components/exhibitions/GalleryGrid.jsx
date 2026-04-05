@@ -1,43 +1,74 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import PhotoCard from '../ui/PhotoCard'
 import Lightbox from 'yet-another-react-lightbox'
 import 'yet-another-react-lightbox/styles.css'
 
 export default function GalleryGrid({ photos, categories }) {
   const [activeCategory, setActiveCategory] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [lightboxIndex, setLightboxIndex] = useState(-1)
 
-  const filtered =
-    activeCategory === 'all' ? photos : photos.filter((p) => p.category === activeCategory)
+  // Step 1 — text search across title, submitter name, camera gear
+  const searched = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return photos
+    return photos.filter(
+      (p) =>
+        p.title?.toLowerCase().includes(q) ||
+        p.submitterName?.toLowerCase().includes(q) ||
+        p.cameraGear?.toLowerCase().includes(q)
+    )
+  }, [photos, searchQuery])
 
-  const slides = filtered.map((p) => ({
+  // Step 2 — category filter on top of search results
+  const displayed =
+    activeCategory === 'all' ? searched : searched.filter((p) => p.category === activeCategory)
+
+  const slides = displayed.map((p) => ({
     src: p.imageUrl,
     title: p.title,
     submitterName: p.submitterName,
     cameraGear: p.cameraGear,
   }))
 
+  const handleCategoryChange = (cat) => {
+    setActiveCategory(cat)
+    setLightboxIndex(-1)
+  }
+
   return (
     <div>
-      {/* Category tabs */}
+      {/* Search box */}
+      <div className="mb-4">
+        <input
+          type="search"
+          placeholder="Search by title, photographer, or camera gear..."
+          value={searchQuery}
+          onChange={(e) => { setSearchQuery(e.target.value); setActiveCategory('all'); setLightboxIndex(-1) }}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          aria-label="Search photos"
+        />
+      </div>
+
+      {/* Category tabs — counts reflect current search results */}
       {categories.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-6">
           <button
-            onClick={() => setActiveCategory('all')}
+            onClick={() => handleCategoryChange('all')}
             className={`px-3 py-1.5 text-sm rounded-full font-medium transition-colors ${
               activeCategory === 'all'
                 ? 'bg-indigo-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            All ({photos.length})
+            All ({searched.length})
           </button>
           {categories.map((cat) => {
-            const count = photos.filter((p) => p.category === cat).length
+            const count = searched.filter((p) => p.category === cat).length
             return (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => handleCategoryChange(cat)}
                 className={`px-3 py-1.5 text-sm rounded-full font-medium transition-colors capitalize ${
                   activeCategory === cat
                     ? 'bg-indigo-600 text-white'
@@ -51,11 +82,13 @@ export default function GalleryGrid({ photos, categories }) {
         </div>
       )}
 
-      {filtered.length === 0 ? (
-        <p className="text-center text-gray-500 py-12">No photos in this category yet.</p>
+      {displayed.length === 0 ? (
+        <p className="text-center text-gray-500 py-12">
+          {searchQuery.trim() ? 'No photos match your search.' : 'No photos in this category yet.'}
+        </p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {filtered.map((photo, idx) => (
+          {displayed.map((photo, idx) => (
             <PhotoCard key={photo._id} photo={photo} onClick={() => setLightboxIndex(idx)} />
           ))}
         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { getExhibitions } from '../../api/exhibitions.api'
 import ExhibitionCard from '../../components/ui/ExhibitionCard'
 import Spinner from '../../components/ui/Spinner'
@@ -6,34 +6,44 @@ import PageWrapper from '../../components/layout/PageWrapper'
 
 const TYPES = ['all', 'online', 'offline']
 const STATUSES = ['all', 'active', 'closed']
+const PAGE_SIZE = 12
 
 export default function ExhibitionsPage() {
-  const [exhibitions, setExhibitions] = useState([])
+  const [allExhibitions, setAllExhibitions] = useState([])
   const [loading, setLoading] = useState(true)
   const [type, setType] = useState('all')
   const [status, setStatus] = useState('active')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
 
+  // Load everything once — no server round-trips for search/filter
   useEffect(() => {
-    setLoading(true)
-    const params = { page, limit: 12 }
-    if (type !== 'all') params.type = type
-    if (status !== 'all') params.status = status
-    if (search.trim()) params.search = search.trim()
-
-    getExhibitions(params)
-      .then((res) => {
-        setExhibitions(res.data.exhibitions || [])
-        setTotalPages(res.data.totalPages || 1)
-      })
-      .catch(() => setExhibitions([]))
+    getExhibitions({ limit: 1000 })
+      .then((res) => setAllExhibitions(res.data.exhibitions || []))
+      .catch(() => setAllExhibitions([]))
       .finally(() => setLoading(false))
-  }, [type, status, search, page])
+  }, [])
 
-  const handleSearch = (e) => {
-    setSearch(e.target.value)
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return allExhibitions.filter((ex) => {
+      if (type !== 'all' && ex.type !== type) return false
+      if (status !== 'all' && ex.status !== status) return false
+      if (q) {
+        return (
+          ex.title?.toLowerCase().includes(q) ||
+          ex.organizerName?.toLowerCase().includes(q)
+        )
+      }
+      return true
+    })
+  }, [allExhibitions, type, status, search])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const setFilter = (setter) => (val) => {
+    setter(val)
     setPage(1)
   }
 
@@ -48,9 +58,9 @@ export default function ExhibitionsPage() {
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
         <input
           type="search"
-          placeholder="Search exhibitions..."
+          placeholder="Search by title or organizer..."
           value={search}
-          onChange={handleSearch}
+          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
           className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           aria-label="Search exhibitions"
         />
@@ -58,7 +68,7 @@ export default function ExhibitionsPage() {
           {TYPES.map((t) => (
             <button
               key={t}
-              onClick={() => { setType(t); setPage(1) }}
+              onClick={() => setFilter(setType)(t)}
               className={`px-3 py-2 text-sm rounded-lg font-medium transition-colors capitalize ${
                 type === t
                   ? 'bg-indigo-600 text-white'
@@ -73,7 +83,7 @@ export default function ExhibitionsPage() {
           {STATUSES.map((s) => (
             <button
               key={s}
-              onClick={() => { setStatus(s); setPage(1) }}
+              onClick={() => setFilter(setStatus)(s)}
               className={`px-3 py-2 text-sm rounded-lg font-medium transition-colors capitalize ${
                 status === s
                   ? 'bg-indigo-600 text-white'
@@ -90,7 +100,7 @@ export default function ExhibitionsPage() {
         <div className="flex justify-center py-20">
           <Spinner size="lg" />
         </div>
-      ) : exhibitions.length === 0 ? (
+      ) : paginated.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
           <p className="text-lg mb-2">No exhibitions found</p>
           <p className="text-sm">Try adjusting your filters.</p>
@@ -98,7 +108,7 @@ export default function ExhibitionsPage() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {exhibitions.map((ex) => (
+            {paginated.map((ex) => (
               <ExhibitionCard key={ex._id} exhibition={ex} />
             ))}
           </div>
