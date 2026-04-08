@@ -1,0 +1,39 @@
+<svg width="100%" viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+
+  </defs>
+
+  <!-- === ICON MARK === -->
+  <polygon points="100,42 136,63 136,105 100,126 64,105 64,63" fill="none" stroke="#d8cfc6" stroke-width="1"/>
+  <polygon points="100,50 128,66 128,98 100,114 72,98 72,66" fill="none" stroke="#e8e0d8" stroke-width="0.5"/>
+
+  <!-- Light rays -->
+  <g stroke="#C8844A" stroke-linecap="round">
+    <line x1="100" y1="84" x2="100" y2="52" stroke-width="1" opacity="0.5"/>
+    <line x1="100" y1="84" x2="127" y2="68" stroke-width="1" opacity="0.4"/>
+    <line x1="100" y1="84" x2="127" y2="100" stroke-width="1" opacity="0.4"/>
+    <line x1="100" y1="84" x2="100" y2="112" stroke-width="1" opacity="0.5"/>
+    <line x1="100" y1="84" x2="73" y2="100" stroke-width="1" opacity="0.4"/>
+    <line x1="100" y1="84" x2="73" y2="68" stroke-width="1" opacity="0.4"/>
+    <line x1="100" y1="84" x2="113" y2="57" stroke-width="0.6" opacity="0.25"/>
+    <line x1="100" y1="84" x2="87" y2="57" stroke-width="0.6" opacity="0.25"/>
+    <line x1="100" y1="84" x2="127" y2="84" stroke-width="0.6" opacity="0.25"/>
+    <line x1="100" y1="84" x2="73" y2="84" stroke-width="0.6" opacity="0.25"/>
+    <line x1="100" y1="84" x2="113" y2="111" stroke-width="0.6" opacity="0.25"/>
+    <line x1="100" y1="84" x2="87" y2="111" stroke-width="0.6" opacity="0.25"/>
+  </g>
+
+  <!-- Aperture circle -->
+  <circle cx="100" cy="84" r="22" fill="none" stroke="#c8bfb6" stroke-width="1.5"/>
+  <circle cx="100" cy="84" r="16" fill="none" stroke="#d8d0c8" stroke-width="0.5"/>
+  <circle cx="100" cy="84" r="11" fill="#1c1a18"/>
+  <circle cx="100" cy="84" r="4" fill="#C8844A" opacity="0.9"/>
+  <circle cx="100" cy="84" r="7" fill="#C8844A" opacity="0.15"/>
+  <circle cx="110" cy="74" r="3" fill="white" opacity="0.12"/>
+
+  <!-- === WORDMARK === -->
+  <text x="172" y="100" font-family="'Hind Siliguri', sans-serif" font-size="36" font-weight="600" fill="#1c1a18">আলোকচিত্র</text>
+  <line x1="172" y1="112" x2="530" y2="112" stroke="#e0d8d0" stroke-width="0.5"/>
+  <text x="173" y="128" font-family="'Cormorant Garamond', Georgia, serif" font-size="13" font-weight="400" fill="#9a8a78">ALOKCHITRA</text>
+  <text x="355" y="128" font-family="'Cormorant Garamond', Georgia, serif" font-size="11" font-weight="300" fill="#b0a090">  ·  photo exhibition</text>
+</svg>

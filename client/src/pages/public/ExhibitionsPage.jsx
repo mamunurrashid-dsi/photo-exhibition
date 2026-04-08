@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { getExhibitions } from '../../api/exhibitions.api'
+import { useAuth } from '../../context/AuthContext'
 import ExhibitionCard from '../../components/ui/ExhibitionCard'
 import Spinner from '../../components/ui/Spinner'
 import PageWrapper from '../../components/layout/PageWrapper'
@@ -9,6 +11,7 @@ const STATUSES = ['all', 'active', 'closed']
 const PAGE_SIZE = 12
 
 export default function ExhibitionsPage() {
+  const { user } = useAuth()
   const [allExhibitions, setAllExhibitions] = useState([])
   const [loading, setLoading] = useState(true)
   const [type, setType] = useState('all')
@@ -49,9 +52,17 @@ export default function ExhibitionsPage() {
 
   return (
     <PageWrapper>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Exhibitions</h1>
-        <p className="text-gray-500">Browse photography exhibitions from around the world.</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Exhibitions</h1>
+          <p className="text-gray-500">Browse photography exhibitions from around the world.</p>
+        </div>
+        <Link
+          to={user ? '/dashboard/exhibitions/new' : '/login'}
+          className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+        >
+          + Create Exhibition
+        </Link>
       </div>
 
       {/* Filters */}

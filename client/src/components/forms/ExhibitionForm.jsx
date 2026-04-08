@@ -1,7 +1,9 @@
 import { useState, useRef } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import Button from '../ui/Button'
 
 const baseSchema = z.object({
@@ -39,6 +41,7 @@ export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
@@ -241,14 +244,52 @@ export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Submission Start Date *</label>
-              <input type="date" {...register('submissionStartDate')} className={inputClass} />
+              <Controller
+                name="submissionStartDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    dateFormat="dd-MM-yyyy"
+                    selected={field.value ? (() => { const [y, mo, d] = field.value.split('-').map(Number); return new Date(y, mo - 1, d) })() : null}
+                    onChange={(date) => {
+                    if (!date) { field.onChange(''); return }
+                    const y = date.getFullYear()
+                    const m = String(date.getMonth() + 1).padStart(2, '0')
+                    const d = String(date.getDate()).padStart(2, '0')
+                    field.onChange(`${y}-${m}-${d}`)
+                  }}
+                    className={inputClass}
+                    placeholderText="dd-mm-yyyy"
+                    autoComplete="off"
+                  />
+                )}
+              />
               {errors.submissionStartDate && (
                 <p className={errorClass}>{errors.submissionStartDate.message}</p>
               )}
             </div>
             <div>
               <label className={labelClass}>Submission End Date *</label>
-              <input type="date" {...register('submissionEndDate')} className={inputClass} />
+              <Controller
+                name="submissionEndDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    dateFormat="dd-MM-yyyy"
+                    selected={field.value ? (() => { const [y, mo, d] = field.value.split('-').map(Number); return new Date(y, mo - 1, d) })() : null}
+                    onChange={(date) => {
+                    if (!date) { field.onChange(''); return }
+                    const y = date.getFullYear()
+                    const m = String(date.getMonth() + 1).padStart(2, '0')
+                    const d = String(date.getDate()).padStart(2, '0')
+                    field.onChange(`${y}-${m}-${d}`)
+                  }}
+                    className={inputClass}
+                    placeholderText="dd-mm-yyyy"
+                    autoComplete="off"
+                  />
+                )}
+              />
               {errors.submissionEndDate && (
                 <p className={errorClass}>{errors.submissionEndDate.message}</p>
               )}
@@ -278,14 +319,52 @@ export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Exhibition Start Date *</label>
-              <input type="date" {...register('exhibitionStartDate')} className={inputClass} />
+              <Controller
+                name="exhibitionStartDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    dateFormat="dd-MM-yyyy"
+                    selected={field.value ? (() => { const [y, mo, d] = field.value.split('-').map(Number); return new Date(y, mo - 1, d) })() : null}
+                    onChange={(date) => {
+                    if (!date) { field.onChange(''); return }
+                    const y = date.getFullYear()
+                    const m = String(date.getMonth() + 1).padStart(2, '0')
+                    const d = String(date.getDate()).padStart(2, '0')
+                    field.onChange(`${y}-${m}-${d}`)
+                  }}
+                    className={inputClass}
+                    placeholderText="dd-mm-yyyy"
+                    autoComplete="off"
+                  />
+                )}
+              />
               {errors.exhibitionStartDate && (
                 <p className={errorClass}>{errors.exhibitionStartDate.message}</p>
               )}
             </div>
             <div>
               <label className={labelClass}>Exhibition End Date *</label>
-              <input type="date" {...register('exhibitionEndDate')} className={inputClass} />
+              <Controller
+                name="exhibitionEndDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    dateFormat="dd-MM-yyyy"
+                    selected={field.value ? (() => { const [y, mo, d] = field.value.split('-').map(Number); return new Date(y, mo - 1, d) })() : null}
+                    onChange={(date) => {
+                    if (!date) { field.onChange(''); return }
+                    const y = date.getFullYear()
+                    const m = String(date.getMonth() + 1).padStart(2, '0')
+                    const d = String(date.getDate()).padStart(2, '0')
+                    field.onChange(`${y}-${m}-${d}`)
+                  }}
+                    className={inputClass}
+                    placeholderText="dd-mm-yyyy"
+                    autoComplete="off"
+                  />
+                )}
+              />
               {errors.exhibitionEndDate && (
                 <p className={errorClass}>{errors.exhibitionEndDate.message}</p>
               )}
