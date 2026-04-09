@@ -4,8 +4,10 @@ import Photo from '../models/Photo.js'
 import Submission from '../models/Submission.js'
 import Rating from '../models/Rating.js'
 import Comment from '../models/Comment.js'
+import User from '../models/User.js'
 import { deleteImage } from '../services/cloudinary.service.js'
-import { LIMITS } from '../config/limits.js'
+import { LIMITS, FEATURES } from '../config/configurations.js'
+import { sendNewExhibitionAdminEmail } from '../services/email.service.js'
 
 export async function getExhibitions(req, res, next) {
   try {
@@ -152,8 +154,36 @@ export async function createExhibition(req, res, next) {
       }
     }
 
+    // Apply approval flow if feature is enabled
+    if (FEATURES.REQUIRE_EXHIBITION_APPROVAL) {
+      data.status = 'pending_approval'
+    }
+
     const exhibition = await Exhibition.create(data)
-    res.status(201).json({ success: true, exhibition: exhibition.toObject() })
+
+    // Notify all admins by email (fire-and-forget — don't fail the request if email fails)
+    if (FEATURES.REQUIRE_EXHIBITION_APPROVAL) {
+      try {
+        const admins = await User.find({ role: 'admin' }).select('email').lean()
+        if (admins.length > 0) {
+          const adminEmails = admins.map((a) => a.email)
+          await sendNewExhibitionAdminEmail(
+            adminEmails,
+            exhibition,
+            req.user.name,
+            req.user.email
+          )
+        }
+      } catch (emailErr) {
+        console.error('Failed to send admin notification email:', emailErr.message)
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      exhibition: exhibition.toObject(),
+      pendingApproval: FEATURES.REQUIRE_EXHIBITION_APPROVAL,
+    })
   } catch (err) {
     next(err)
   }

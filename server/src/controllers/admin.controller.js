@@ -5,6 +5,10 @@ import Photo from '../models/Photo.js'
 import Rating from '../models/Rating.js'
 import Comment from '../models/Comment.js'
 import { deleteImage } from '../services/cloudinary.service.js'
+import {
+  sendExhibitionApprovedEmail,
+  sendExhibitionRejectedEmail,
+} from '../services/email.service.js'
 
 export async function getStats(_req, res, next) {
   try {
@@ -160,6 +164,46 @@ export async function deleteSubmission(req, res, next) {
     await submission.deleteOne()
 
     res.json({ success: true, message: 'Submission deleted' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function moderateExhibition(req, res, next) {
+  try {
+    const { action, reason } = req.body
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Invalid action. Use approve or reject.' })
+    }
+
+    const exhibition = await Exhibition.findById(req.params.id).populate('createdBy', 'name email')
+    if (!exhibition) return res.status(404).json({ success: false, message: 'Exhibition not found' })
+
+    exhibition.status = action === 'approve' ? 'active' : 'rejected'
+    await exhibition.save()
+
+    // Notify organizer by email (fire-and-forget)
+    try {
+      if (action === 'approve') {
+        await sendExhibitionApprovedEmail(
+          exhibition.createdBy.email,
+          exhibition.createdBy.name,
+          exhibition.title,
+          exhibition._id
+        )
+      } else {
+        await sendExhibitionRejectedEmail(
+          exhibition.createdBy.email,
+          exhibition.createdBy.name,
+          exhibition.title,
+          reason
+        )
+      }
+    } catch (emailErr) {
+      console.error('Failed to send exhibition status email:', emailErr.message)
+    }
+
+    res.json({ success: true, exhibition })
   } catch (err) {
     next(err)
   }

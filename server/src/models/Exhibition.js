@@ -45,13 +45,11 @@ const exhibitionSchema = new mongoose.Schema(
       type: String,
       sparse: true,
       unique: true,
-      default: null,
     },
     allowedEmailDomain: {
       type: String,
       lowercase: true,
       trim: true,
-      default: null,
     },
     allowSubmissionFromOthers: {
       type: Boolean,
@@ -84,7 +82,7 @@ const exhibitionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['draft', 'active', 'closed', 'archived'],
+      enum: ['draft', 'pending_approval', 'active', 'closed', 'archived', 'rejected'],
       default: 'active',
     },
   },

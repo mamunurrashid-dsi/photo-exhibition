@@ -2,7 +2,7 @@ import Exhibition from '../models/Exhibition.js'
 import Submission from '../models/Submission.js'
 import Photo from '../models/Photo.js'
 import { deleteImage, getThumbnailUrl } from '../services/cloudinary.service.js'
-import { LIMITS } from '../config/limits.js'
+import { LIMITS } from '../config/configurations.js'
 import {
   sendSubmissionConfirmationEmail,
   sendSubmissionStatusEmail,

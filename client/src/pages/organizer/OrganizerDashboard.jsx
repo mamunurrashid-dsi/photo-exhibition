@@ -43,7 +43,10 @@ export default function OrganizerDashboard() {
 
   const typeVariant = (type) => (type === 'online' ? 'indigo' : 'purple')
   const statusVariant = (s) =>
-    ({ active: 'success', closed: 'default', draft: 'warning', archived: 'default' }[s] || 'default')
+    ({ active: 'success', closed: 'default', draft: 'warning', archived: 'default', pending_approval: 'warning', rejected: 'danger' }[s] || 'default')
+
+  const statusLabel = (s) =>
+    ({ pending_approval: 'Pending Approval' }[s] || s)
 
   return (
     <PageWrapper>
@@ -107,7 +110,7 @@ export default function OrganizerDashboard() {
                       <Badge variant={typeVariant(ex.type)}>{ex.type}</Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={statusVariant(ex.status)}>{ex.status}</Badge>
+                      <Badge variant={statusVariant(ex.status)}>{statusLabel(ex.status)}</Badge>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {ex.type === 'online'

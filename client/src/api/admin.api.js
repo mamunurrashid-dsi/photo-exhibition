@@ -9,4 +9,5 @@ export const getAdminExhibitions = (params) => api.get('/admin/exhibitions', { p
 export const deleteAdminExhibition = (id) => api.delete(`/admin/exhibitions/${id}`)
 export const getAdminSubmissions = (params) => api.get('/admin/submissions', { params })
 export const deleteAdminSubmission = (id) => api.delete(`/admin/submissions/${id}`)
+export const moderateExhibition = (id, action, reason) => api.patch(`/admin/exhibitions/${id}/moderate`, { action, reason })
 export const moderatePhoto = (id, status) => api.patch(`/admin/photos/${id}/moderate`, { status })

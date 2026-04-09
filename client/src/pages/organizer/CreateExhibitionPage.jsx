@@ -14,10 +14,14 @@ export default function CreateExhibitionPage() {
     setLoading(true)
     try {
       const res = await createExhibition(formData)
-      const { exhibition } = res.data
-      addToast('Exhibition created successfully!', 'success')
+      const { exhibition, pendingApproval } = res.data
 
-      // If private, show the private link
+      if (pendingApproval) {
+        addToast('Exhibition submitted for review. You will be notified once it is approved.', 'info', 7000)
+      } else {
+        addToast('Exhibition created successfully!', 'success')
+      }
+
       if (exhibition.visibility === 'private' && exhibition.privateToken) {
         const privateUrl = `${window.location.origin}/e/${exhibition.privateToken}`
         addToast(`Private link: ${privateUrl} — Share this with your guests.`, 'info', 8000)
@@ -45,6 +49,22 @@ export default function CreateExhibitionPage() {
             <p className="text-gray-500 text-sm">Set up a new online or offline photography exhibition.</p>
           </div>
         </div>
+
+        {/* Legal disclosure */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+          <div className="flex gap-3">
+            <span className="text-amber-500 text-xl leading-none mt-0.5">⚠</span>
+            <div>
+              <p className="text-sm font-semibold text-amber-800 mb-1">Content Policy & Legal Notice</p>
+              <p className="text-sm text-amber-700 leading-relaxed">
+                All exhibitions are reviewed before going live. Exhibitions containing <strong>nudity, vulgarity, hate speech, or any illegal content</strong> will be immediately removed by the administration.
+                Repeated or serious violations may result in <strong>account suspension and legal action</strong> in accordance with applicable laws.
+                By submitting, you confirm that your exhibition complies with our content policy and that you hold the rights to all material displayed.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <ExhibitionForm onSubmit={handleSubmit} loading={loading} />
         </div>

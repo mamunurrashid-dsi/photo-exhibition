@@ -9,6 +9,7 @@ import {
   deleteUser,
   getExhibitions,
   deleteExhibition,
+  moderateExhibition,
   getSubmissions,
   deleteSubmission,
   moderatePhoto,
@@ -24,6 +25,7 @@ router.get('/users/:id', getUser)
 router.patch('/users/:id', updateUser)
 router.delete('/users/:id', deleteUser)
 router.get('/exhibitions', getExhibitions)
+router.patch('/exhibitions/:id/moderate', moderateExhibition)
 router.delete('/exhibitions/:id', deleteExhibition)
 router.get('/submissions', getSubmissions)
 router.delete('/submissions/:id', deleteSubmission)
