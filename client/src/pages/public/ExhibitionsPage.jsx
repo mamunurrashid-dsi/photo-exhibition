@@ -104,7 +104,7 @@ export default function ExhibitionsPage() {
           {STATUSES.map((s) => (
             <button
               key={s}
-              onClick={() => setFilter(setStatus)(s)}
+              onClick={() => { setFilter(setStatus)(s); if (s !== 'active') setAcceptingOnly(false) }}
               className={`px-3 py-2 text-sm rounded-lg font-medium transition-colors capitalize ${
                 status === s
                   ? 'bg-indigo-600 text-white'
@@ -116,14 +116,17 @@ export default function ExhibitionsPage() {
           ))}
         </div>
         <button
-          onClick={() => { setAcceptingOnly((v) => !v); setPage(1) }}
-          className={`shrink-0 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
-            acceptingOnly
-              ? 'bg-green-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+          role="switch"
+          aria-checked={acceptingOnly}
+          onClick={() => { const next = !acceptingOnly; setAcceptingOnly(next); if (next) setStatus('active'); setPage(1) }}
+          className="shrink-0 flex items-center gap-2.5 cursor-pointer select-none group"
         >
-          Accepting Submissions
+          <span className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 transition-colors duration-200 ${acceptingOnly ? 'bg-green-500 border-green-500' : 'bg-gray-200 border-gray-200'}`}>
+            <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200 ${acceptingOnly ? 'translate-x-4' : 'translate-x-0'}`} />
+          </span>
+          <span className={`text-sm font-medium transition-colors ${acceptingOnly ? 'text-green-600' : 'text-gray-600'}`}>
+            Accepting Submissions
+          </span>
         </button>
       </div>
 
