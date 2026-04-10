@@ -16,6 +16,7 @@ export default function ExhibitionsPage() {
   const [loading, setLoading] = useState(true)
   const [type, setType] = useState('all')
   const [status, setStatus] = useState('active')
+  const [acceptingOnly, setAcceptingOnly] = useState(false)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
 
@@ -29,9 +30,16 @@ export default function ExhibitionsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
+    const now = new Date()
     return allExhibitions.filter((ex) => {
       if (type !== 'all' && ex.type !== type) return false
       if (status !== 'all' && ex.status !== status) return false
+      if (acceptingOnly) {
+        if (ex.type !== 'online') return false
+        if (ex.status !== 'active') return false
+        if (ex.submissionStartDate && new Date(ex.submissionStartDate) > now) return false
+        if (ex.submissionEndDate && new Date(ex.submissionEndDate) < now) return false
+      }
       if (q) {
         return (
           ex.title?.toLowerCase().includes(q) ||
@@ -40,7 +48,7 @@ export default function ExhibitionsPage() {
       }
       return true
     })
-  }, [allExhibitions, type, status, search])
+  }, [allExhibitions, type, status, acceptingOnly, search])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -107,6 +115,16 @@ export default function ExhibitionsPage() {
             </button>
           ))}
         </div>
+        <button
+          onClick={() => { setAcceptingOnly((v) => !v); setPage(1) }}
+          className={`shrink-0 px-3 py-2 text-sm rounded-lg font-medium transition-colors ${
+            acceptingOnly
+              ? 'bg-green-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Accepting Submissions
+        </button>
       </div>
 
       {loading ? (

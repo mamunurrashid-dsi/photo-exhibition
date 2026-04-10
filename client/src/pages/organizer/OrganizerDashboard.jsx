@@ -85,7 +85,7 @@ export default function OrganizerDashboard() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  {['Exhibition', 'Type', 'Status', 'Dates', 'Actions'].map((h) => (
+                  {['Exhibition', 'Type', 'Status', 'Submissions', 'Dates', 'Actions'].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -111,6 +111,19 @@ export default function OrganizerDashboard() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant={statusVariant(ex.status)}>{statusLabel(ex.status)}</Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      {ex.type === 'online' ? (() => {
+                        const now = new Date()
+                        const start = ex.submissionStartDate ? new Date(ex.submissionStartDate) : null
+                        const end = ex.submissionEndDate ? new Date(ex.submissionEndDate) : null
+                        const accepting = ex.status === 'active' && (!start || start <= now) && (!end || end >= now)
+                        return (
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${accepting ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                            {accepting ? 'Open' : 'Closed'}
+                          </span>
+                        )
+                      })() : <span className="text-xs text-gray-400">—</span>}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {ex.type === 'online'
