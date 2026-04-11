@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Spinner from '../../components/ui/Spinner'
+import Lightbox from 'yet-another-react-lightbox'
+import 'yet-another-react-lightbox/styles.css'
 
 function Stars({ value, max = 5, size = 'md' }) {
   const filled = Math.round(value)
@@ -48,6 +50,7 @@ export default function PhotoDetailPage() {
   const loginState = { state: { from: location } }
 
   const [photo, setPhoto] = useState(null)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [comments, setComments] = useState([])
   const [commentsLoading, setCommentsLoading] = useState(true)
@@ -138,7 +141,10 @@ export default function PhotoDetailPage() {
         </button>
 
         {/* Photo */}
-        <div className="rounded-xl overflow-hidden border border-gray-200 bg-black mb-6">
+        <div
+          className="rounded-xl overflow-hidden border border-gray-200 bg-black mb-6 cursor-zoom-in"
+          onClick={() => setLightboxOpen(true)}
+        >
           <img
             src={photo.imageUrl}
             alt={photo.title}
@@ -146,10 +152,28 @@ export default function PhotoDetailPage() {
           />
         </div>
 
+        <Lightbox
+          open={lightboxOpen}
+          close={() => setLightboxOpen(false)}
+          slides={[{ src: photo.imageUrl }]}
+          render={{ buttonPrev: () => null, buttonNext: () => null }}
+        />
+
         {/* Photo info + average rating stars */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-4">
           <h1 className="text-xl font-bold text-gray-900 mb-1">{photo.title}</h1>
-          <p className="text-sm text-gray-500 mb-1">{photo.submitterName}</p>
+          {photo.submitterUser ? (
+            <Link to={`/users/${photo.submitterUser}`} className="text-sm text-gray-500 mb-1 hover:text-indigo-600 transition-colors block">
+              {photo.submitterName}
+            </Link>
+          ) : (
+            <p className="text-sm text-gray-500 mb-1">{photo.submitterName}</p>
+          )}
+          {photo.exhibition && (
+            <Link to={`/exhibitions/${photo.exhibition._id}`} className="text-xs text-indigo-500 hover:text-indigo-700 transition-colors mb-2 block">
+              {photo.exhibition.title}
+            </Link>
+          )}
           {photo.cameraGear && (
             <p className="text-xs text-gray-400 mb-3">{photo.cameraGear}</p>
           )}
@@ -230,7 +254,13 @@ export default function PhotoDetailPage() {
               {comments.map((c) => (
                 <li key={c._id} className="border-t border-gray-100 pt-4 first:border-0 first:pt-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-800">{c.userName}</span>
+                    {c.user ? (
+                      <Link to={`/users/${c.user}`} className="text-sm font-medium text-gray-800 hover:text-indigo-600 transition-colors">
+                        {c.userName}
+                      </Link>
+                    ) : (
+                      <span className="text-sm font-medium text-gray-800">{c.userName}</span>
+                    )}
                     <span className="text-xs text-gray-400">
                       {new Date(c.createdAt).toLocaleDateString('en-CA')}
                     </span>

@@ -84,7 +84,14 @@ export default function ExhibitionDetailPage() {
             <Badge variant={status === 'active' ? 'success' : 'default'}>{status}</Badge>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{title}</h1>
-          <p className="text-gray-500 text-lg mb-4">By {organizerName}</p>
+          <p className="text-gray-500 text-lg mb-4">
+            By{' '}
+            {exhibition.createdBy?._id ? (
+              <Link to={`/users/${exhibition.createdBy._id}`} className="hover:text-indigo-600 transition-colors">
+                {organizerName}
+              </Link>
+            ) : organizerName}
+          </p>
 
           {description && (
             <p className="text-gray-600 max-w-3xl mb-6 leading-relaxed">{description}</p>

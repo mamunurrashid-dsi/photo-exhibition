@@ -23,6 +23,7 @@ export async function getExhibitions(req, res, next) {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit))
+        .populate('createdBy', 'name')
         .select('-privateToken -allowedEmailDomain'),
       Exhibition.countDocuments(filter),
     ])

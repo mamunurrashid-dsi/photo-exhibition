@@ -99,7 +99,9 @@ export default function AdminUsersPage() {
               <tbody className="divide-y divide-gray-100">
                 {users.map((u) => (
                   <tr key={u._id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{u.name}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      <Link to={`/users/${u._id}`} className="hover:text-indigo-600 transition-colors">{u.name}</Link>
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-500">{u.email}</td>
                     <td className="px-4 py-3">
                       <Badge variant={u.role === 'admin' ? 'danger' : 'default'}>{u.role}</Badge>

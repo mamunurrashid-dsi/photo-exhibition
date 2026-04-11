@@ -1,15 +1,17 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Badge from './Badge'
 import { formatDateShort, isSubmissionOpen } from '../../utils/formatDate'
 import { truncate } from '../../utils/truncate'
 
 export default function ExhibitionCard({ exhibition }) {
+  const navigate = useNavigate()
   const {
     _id,
     title,
     type,
     visibility,
     organizerName,
+    createdBy,
     categories = [],
     submissionStartDate,
     submissionEndDate,
@@ -50,7 +52,13 @@ export default function ExhibitionCard({ exhibition }) {
             {submissionOpen && <Badge variant="success">Open</Badge>}
           </div>
         </div>
-        <p className="text-sm text-gray-500 mb-3">{organizerName}</p>
+        <p
+          className="text-sm text-gray-500 mb-3 hover:text-indigo-600 transition-colors"
+          style={createdBy?._id ? { cursor: 'pointer' } : undefined}
+          onClick={createdBy?._id ? (e) => { e.preventDefault(); e.stopPropagation(); navigate(`/users/${createdBy._id}`) } : undefined}
+        >
+          {organizerName}
+        </p>
         {type === 'online' ? (
           <p className="text-xs text-gray-400">
             Submissions: {formatDateShort(submissionStartDate)} – {formatDateShort(submissionEndDate)}

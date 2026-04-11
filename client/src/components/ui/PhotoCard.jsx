@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom'
+
 function Stars({ value, max = 5 }) {
   const filled = Math.round(value)
   return (
@@ -10,7 +12,8 @@ function Stars({ value, max = 5 }) {
 }
 
 export default function PhotoCard({ photo, onClick }) {
-  const { title, submitterName, thumbnailUrl, imageUrl, cameraGear, avgRating, ratingCount } = photo
+  const navigate = useNavigate()
+  const { title, submitterName, submitterUser, thumbnailUrl, imageUrl, cameraGear, avgRating, ratingCount } = photo
 
   return (
     <button
@@ -29,7 +32,13 @@ export default function PhotoCard({ photo, onClick }) {
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
         <p className="text-white text-sm font-medium truncate">{title}</p>
         {submitterName && (
-          <p className="text-white/70 text-xs truncate">{submitterName}</p>
+          <p
+            className="text-white/70 text-xs truncate hover:text-white transition-colors"
+            style={submitterUser ? { cursor: 'pointer' } : undefined}
+            onClick={submitterUser ? (e) => { e.stopPropagation(); navigate(`/users/${submitterUser}`) } : undefined}
+          >
+            {submitterName}
+          </p>
         )}
         {cameraGear && (
           <p className="text-white/50 text-xs truncate">{cameraGear}</p>

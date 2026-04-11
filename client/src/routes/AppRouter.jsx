@@ -32,6 +32,8 @@ const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard'))
 const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage'))
 const AdminExhibitionsPage = lazy(() => import('../pages/admin/AdminExhibitionsPage'))
 const AdminModerationPage = lazy(() => import('../pages/admin/AdminModerationPage'))
+const UserProfilePage = lazy(() => import('../pages/public/UserProfilePage'))
+const EditProfilePage = lazy(() => import('../pages/user/EditProfilePage'))
 
 const LoadingFallback = () => (
   <div className="flex justify-center items-center min-h-[60vh]">
@@ -52,6 +54,7 @@ export default function AppRouter() {
             <Route path="/exhibitions/:id" element={<ExhibitionDetailPage />} />
             <Route path="/e/:token" element={<PrivateExhibitionPage />} />
             <Route path="/photos/:id" element={<PhotoDetailPage />} />
+            <Route path="/users/:id" element={<UserProfilePage />} />
 
             {/* Auth */}
             <Route path="/login" element={<LoginPage />} />
@@ -67,6 +70,16 @@ export default function AppRouter() {
                 <Suspense fallback={<LoadingFallback />}>
                   <SubmissionFormPage />
                 </Suspense>
+              }
+            />
+
+            {/* Edit profile (protected) */}
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <EditProfilePage />
+                </ProtectedRoute>
               }
             />
 

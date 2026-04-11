@@ -39,6 +39,7 @@ export default function GalleryGrid({ photos, categories }) {
     photoId: p._id,
     title: p.title,
     submitterName: p.submitterName,
+    submitterUser: p.submitterUser,
     cameraGear: p.cameraGear,
     avgRating: p.avgRating || 0,
     ratingCount: p.ratingCount || 0,
@@ -136,7 +137,16 @@ export default function GalleryGrid({ photos, categories }) {
               </p>
               {(slide.submitterName || slide.cameraGear) && (
                 <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '12px', margin: 0, textAlign: 'center' }}>
-                  {[slide.submitterName, slide.cameraGear].filter(Boolean).join(' · ')}
+                  {slide.submitterUser ? (
+                    <Link
+                      to={`/users/${slide.submitterUser}`}
+                      style={{ color: 'rgba(165,180,252,0.9)' }}
+                    >
+                      {slide.submitterName}
+                    </Link>
+                  ) : slide.submitterName}
+                  {slide.submitterName && slide.cameraGear && ' · '}
+                  {slide.cameraGear}
                 </p>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '2px 0' }}>
@@ -153,7 +163,6 @@ export default function GalleryGrid({ photos, categories }) {
                   marginTop: '4px',
                   fontSize: '12px',
                   color: '#a5b4fc',
-                  textDecoration: 'underline',
                   cursor: 'pointer',
                 }}
               >

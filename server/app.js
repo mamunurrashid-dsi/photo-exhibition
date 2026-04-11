@@ -11,6 +11,7 @@ import exhibitionRoutes from './src/routes/exhibition.routes.js'
 import submissionRoutes from './src/routes/submission.routes.js'
 import adminRoutes from './src/routes/admin.routes.js'
 import photoRoutes from './src/routes/photo.routes.js'
+import userRoutes from './src/routes/user.routes.js'
 import errorHandler from './src/middleware/errorHandler.js'
 
 const app = express()
@@ -45,6 +46,7 @@ app.use('/api/exhibitions', exhibitionRoutes)
 app.use('/api/submissions', submissionRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/photos', photoRoutes)
+app.use('/api/users', userRoutes)
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }))
 

@@ -6,12 +6,14 @@ import {
   register,
   login,
   getMe,
+  updateProfile,
   verifyEmail,
   resendVerification,
   forgotPassword,
   resetPassword,
 } from '../controllers/auth.controller.js'
 import { verifyToken } from '../middleware/auth.middleware.js'
+import { avatarUpload } from '../middleware/upload.middleware.js'
 import { generateJWT } from '../utils/generateToken.js'
 
 const router = Router()
@@ -57,6 +59,7 @@ router.post(
 )
 
 router.get('/me', verifyToken, getMe)
+router.patch('/profile', verifyToken, avatarUpload.single('avatar'), updateProfile)
 router.get('/verify-email/:token', verifyEmail)
 router.post('/resend-verification', resendVerification)
 router.post('/forgot-password', authLimiter, forgotPassword)

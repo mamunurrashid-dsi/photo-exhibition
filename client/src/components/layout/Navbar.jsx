@@ -46,10 +46,18 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-sm text-gray-600">{user.name}</span>
+                <Link to="/profile/edit" className="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden border-2 border-gray-200 hover:border-indigo-400 transition-colors flex-shrink-0">
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="w-full h-full bg-indigo-100 text-indigo-600 text-sm font-bold flex items-center justify-center">
+                      {user.name?.[0]?.toUpperCase() || '?'}
+                    </span>
+                  )}
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="text-sm text-gray-700 hover:text-red-600 transition-colors"
+                  className="text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
                 >
                   Sign out
                 </button>
@@ -58,7 +66,7 @@ export default function Navbar() {
               <>
                 <Link
                   to="/login"
-                  className="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
+                  className="text-sm font-medium text-white bg-green-700 hover:bg-green-800 px-3 py-1.5 rounded-lg transition-colors"
                 >
                   Sign in
                 </Link>
@@ -108,14 +116,25 @@ export default function Navbar() {
           <div className="border-t border-gray-100 pt-3">
             {user ? (
               <>
-                <p className="text-sm text-gray-500 mb-2">{user.name}</p>
-                <button onClick={handleLogout} className="text-sm text-red-600">
+                <Link to="/profile/edit" className="flex items-center gap-2 mb-2" onClick={() => setMenuOpen(false)}>
+                  <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-200 flex-shrink-0">
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="w-full h-full bg-indigo-100 text-indigo-600 text-xs font-bold flex items-center justify-center">
+                        {user.name?.[0]?.toUpperCase() || '?'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-700">{user.name}</span>
+                </Link>
+                <button onClick={handleLogout} className="text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors">
                   Sign out
                 </button>
               </>
             ) : (
               <div className="flex gap-3">
-                <Link to="/login" className="text-sm font-medium text-gray-700" onClick={() => setMenuOpen(false)}>
+                <Link to="/login" className="text-sm font-medium text-white bg-green-700 hover:bg-green-800 px-3 py-1.5 rounded-lg transition-colors" onClick={() => setMenuOpen(false)}>
                   Sign in
                 </Link>
                 <Link

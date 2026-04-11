@@ -4,6 +4,7 @@ import {
   sendVerificationEmail,
   sendPasswordResetEmail,
 } from '../services/email.service.js'
+import { deleteImage } from '../services/cloudinary.service.js'
 
 export async function register(req, res, next) {
   try {
@@ -62,7 +63,7 @@ export async function login(req, res, next) {
     res.json({
       success: true,
       token,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl, bio: user.bio },
     })
   } catch (err) {
     next(err)
@@ -71,6 +72,34 @@ export async function login(req, res, next) {
 
 export async function getMe(req, res) {
   res.json({ success: true, user: req.user })
+}
+
+export async function updateProfile(req, res, next) {
+  try {
+    const user = req.user
+    const { name, bio } = req.body
+
+    if (name !== undefined) user.name = name.trim()
+    if (bio !== undefined) user.bio = bio.trim()
+
+    if (req.file) {
+      if (user.avatarPublicId) {
+        deleteImage(user.avatarPublicId).catch((err) =>
+          console.error('Failed to delete old avatar:', err.message)
+        )
+      }
+      user.avatarUrl = req.file.path
+      user.avatarPublicId = req.file.filename
+    }
+
+    await user.save()
+    res.json({
+      success: true,
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl, bio: user.bio },
+    })
+  } catch (err) {
+    next(err)
+  }
 }
 
 export async function verifyEmail(req, res, next) {

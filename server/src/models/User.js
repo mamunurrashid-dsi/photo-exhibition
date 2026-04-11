@@ -45,6 +45,9 @@ const userSchema = new mongoose.Schema(
     emailVerificationExpires: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
+    avatarUrl: { type: String, default: null },
+    avatarPublicId: { type: String, default: null },
+    bio: { type: String, trim: true, maxlength: 500, default: null },
   },
   { timestamps: true }
 )
