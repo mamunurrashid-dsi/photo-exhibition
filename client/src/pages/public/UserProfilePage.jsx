@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getPublicProfile } from '../../api/users.api'
+import { useAuth } from '../../context/AuthContext'
 import ExhibitionCard from '../../components/ui/ExhibitionCard'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Spinner from '../../components/ui/Spinner'
@@ -26,6 +27,8 @@ function Avatar({ avatarUrl, name, size = 'lg' }) {
 
 export default function UserProfilePage() {
   const { id } = useParams()
+  const { user: currentUser } = useAuth()
+  const isOwnProfile = currentUser?._id === id
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -62,8 +65,21 @@ export default function UserProfilePage() {
         {/* Profile header */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start gap-5">
           <Avatar avatarUrl={user.avatarUrl} name={user.name} />
-          <div className="text-center sm:text-left">
-            <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
+          <div className="text-center sm:text-left flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
+              {isOwnProfile && (
+                <Link
+                  to="/profile/edit"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors self-center sm:self-auto"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit Profile
+                </Link>
+              )}
+            </div>
             {user.bio && (
               <p className="text-gray-600 mt-2 max-w-xl leading-relaxed">{user.bio}</p>
             )}

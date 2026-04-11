@@ -63,7 +63,14 @@ export default function EditProfilePage() {
   return (
     <PageWrapper>
       <div className="max-w-lg mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Profile</h1>
+        <div className="flex items-center gap-3 mb-6">
+          <button onClick={() => navigate(`/users/${user._id}`)} className="text-gray-400 hover:text-gray-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Profile</h1>
+        </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -115,7 +122,7 @@ export default function EditProfilePage() {
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" loading={loading}>Save Changes</Button>
-              <Button type="button" variant="secondary" onClick={() => navigate(-1)}>Cancel</Button>
+              <Button type="button" variant="secondary" onClick={() => navigate(`/users/${user._id}`)}>Cancel</Button>
             </div>
           </form>
         </div>

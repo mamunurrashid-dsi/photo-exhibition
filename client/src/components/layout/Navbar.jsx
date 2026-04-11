@@ -46,7 +46,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                <Link to="/profile/edit" className="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden border-2 border-gray-200 hover:border-indigo-400 transition-colors flex-shrink-0">
+                <Link to={`/users/${user._id}`} className="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden border-2 border-gray-200 hover:border-indigo-400 transition-colors flex-shrink-0">
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
                   ) : (
@@ -57,7 +57,7 @@ export default function Navbar() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+                  className="text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
                 >
                   Sign out
                 </button>
@@ -116,7 +116,7 @@ export default function Navbar() {
           <div className="border-t border-gray-100 pt-3">
             {user ? (
               <>
-                <Link to="/profile/edit" className="flex items-center gap-2 mb-2" onClick={() => setMenuOpen(false)}>
+                <Link to={`/users/${user._id}`} className="flex items-center gap-2 mb-2" onClick={() => setMenuOpen(false)}>
                   <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-200 flex-shrink-0">
                     {user.avatarUrl ? (
                       <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
@@ -128,7 +128,7 @@ export default function Navbar() {
                   </div>
                   <span className="text-sm text-gray-700">{user.name}</span>
                 </Link>
-                <button onClick={handleLogout} className="text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors">
+                <button onClick={handleLogout} className="text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
                   Sign out
                 </button>
               </>
