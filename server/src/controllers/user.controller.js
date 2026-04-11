@@ -10,6 +10,7 @@ export async function getPublicProfile(req, res, next) {
     const [photos, exhibitions] = await Promise.all([
       Photo.find({ submitterUser: req.params.id, status: 'approved' })
         .select('title thumbnailUrl imageUrl avgRating ratingCount exhibition')
+        .populate('exhibition', 'title')
         .sort({ createdAt: -1 }),
       Exhibition.find({ createdBy: req.params.id, visibility: 'public', status: 'active' })
         .select('title type organizerName coverImageUrl status submissionStartDate submissionEndDate exhibitionStartDate exhibitionEndDate categories createdBy')

@@ -43,6 +43,8 @@ export default function GalleryGrid({ photos, categories }) {
     cameraGear: p.cameraGear,
     avgRating: p.avgRating || 0,
     ratingCount: p.ratingCount || 0,
+    exhibitionId: p.exhibition?._id || (typeof p.exhibition === 'string' ? p.exhibition : null),
+    exhibitionTitle: p.exhibition?.title,
   }))
 
   const handleCategoryChange = (cat) => {
@@ -135,6 +137,14 @@ export default function GalleryGrid({ photos, categories }) {
               <p style={{ color: '#fff', fontSize: '14px', fontWeight: 600, margin: 0, textAlign: 'center' }}>
                 {slide.title}
               </p>
+              {slide.exhibitionId && slide.exhibitionTitle && (
+                <Link
+                  to={`/exhibitions/${slide.exhibitionId}`}
+                  style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', margin: 0 }}
+                >
+                  {slide.exhibitionTitle}
+                </Link>
+              )}
               {(slide.submitterName || slide.cameraGear) && (
                 <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '12px', margin: 0, textAlign: 'center' }}>
                   {slide.submitterUser ? (

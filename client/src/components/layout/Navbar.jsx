@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const handleLogout = () => {
@@ -66,6 +67,7 @@ export default function Navbar() {
               <>
                 <Link
                   to="/login"
+                  state={{ from: location }}
                   className="text-sm font-medium text-white bg-green-700 hover:bg-green-800 px-3 py-1.5 rounded-lg transition-colors"
                 >
                   Sign in
@@ -134,7 +136,7 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex gap-3">
-                <Link to="/login" className="text-sm font-medium text-white bg-green-700 hover:bg-green-800 px-3 py-1.5 rounded-lg transition-colors" onClick={() => setMenuOpen(false)}>
+                <Link to="/login" state={{ from: location }} className="text-sm font-medium text-white bg-green-700 hover:bg-green-800 px-3 py-1.5 rounded-lg transition-colors" onClick={() => setMenuOpen(false)}>
                   Sign in
                 </Link>
                 <Link

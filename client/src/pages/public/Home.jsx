@@ -51,6 +51,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link
                 to={user ? '/dashboard/exhibitions/new' : '/login'}
+                state={user ? undefined : { from: { pathname: '/dashboard/exhibitions/new' } }}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-xl font-semibold transition-colors shadow-lg shadow-indigo-200"
               >
                 Create an Exhibition

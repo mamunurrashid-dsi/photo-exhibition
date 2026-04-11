@@ -69,15 +69,25 @@ router.post(
   resetPassword
 )
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }))
+router.get('/google', (req, res, next) => {
+  const redirect = req.query.redirect || '/dashboard'
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    state: encodeURIComponent(redirect),
+  })(req, res, next)
+})
 
 router.get(
   '/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: '/login?error=oauth_failed' }),
   (req, res) => {
     const token = generateJWT(req.user._id)
+    let redirect = '/dashboard'
+    try {
+      if (req.query.state) redirect = decodeURIComponent(req.query.state)
+    } catch {}
     res.redirect(
-      `${process.env.CLIENT_URL}/login?token=${token}&name=${encodeURIComponent(req.user.name)}&email=${encodeURIComponent(req.user.email)}&role=${req.user.role}`
+      `${process.env.CLIENT_URL}/login?token=${token}&name=${encodeURIComponent(req.user.name)}&email=${encodeURIComponent(req.user.email)}&role=${req.user.role}&redirect=${encodeURIComponent(redirect)}`
     )
   }
 )

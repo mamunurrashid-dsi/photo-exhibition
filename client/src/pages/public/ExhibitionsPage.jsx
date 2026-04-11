@@ -67,6 +67,7 @@ export default function ExhibitionsPage() {
         </div>
         <Link
           to={user ? '/dashboard/exhibitions/new' : '/login'}
+          state={user ? undefined : { from: { pathname: '/dashboard/exhibitions/new' } }}
           className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
         >
           + Create Exhibition

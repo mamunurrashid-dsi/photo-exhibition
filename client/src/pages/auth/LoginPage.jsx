@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -18,7 +18,8 @@ export default function LoginPage() {
   const location = useLocation()
   const { login } = useAuth()
   const { addToast } = useToast()
-  const from = location.state?.from?.pathname || '/dashboard'
+  const fromState = location.state?.from
+  const from = (typeof fromState === 'string' ? fromState : fromState?.pathname) || '/dashboard'
 
   // Handle Google OAuth redirect: server appends ?token=...&name=...&email=...&role=...
   useEffect(() => {
@@ -29,7 +30,8 @@ export default function LoginPage() {
       const email = params.get('email') || ''
       const role = params.get('role') || 'user'
       login(oauthToken, { name, email, role })
-      navigate('/dashboard', { replace: true })
+      const redirect = params.get('redirect') || '/dashboard'
+      navigate(redirect, { replace: true })
     }
   }, [])
 
@@ -51,7 +53,8 @@ export default function LoginPage() {
   }
 
   const handleGoogleLogin = () => {
-    window.location.href = import.meta.env.VITE_GOOGLE_OAUTH_REDIRECT
+    const url = `${import.meta.env.VITE_GOOGLE_OAUTH_REDIRECT}?redirect=${encodeURIComponent(from)}`
+    window.location.href = url
   }
 
   return (

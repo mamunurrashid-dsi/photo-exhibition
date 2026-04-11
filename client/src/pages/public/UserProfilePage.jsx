@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, Navigate, useLocation } from 'react-router-dom'
 import { getPublicProfile } from '../../api/users.api'
 import { useAuth } from '../../context/AuthContext'
 import ExhibitionCard from '../../components/ui/ExhibitionCard'
+import GalleryGrid from '../../components/exhibitions/GalleryGrid'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Spinner from '../../components/ui/Spinner'
 import { formatDate } from '../../utils/formatDate'
@@ -27,7 +28,8 @@ function Avatar({ avatarUrl, name, size = 'lg' }) {
 
 export default function UserProfilePage() {
   const { id } = useParams()
-  const { user: currentUser } = useAuth()
+  const location = useLocation()
+  const { user: currentUser, loading: authLoading } = useAuth()
   const isOwnProfile = currentUser?._id === id
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -39,6 +41,9 @@ export default function UserProfilePage() {
       .catch((err) => setError(err.response?.data?.message || 'User not found.'))
       .finally(() => setLoading(false))
   }, [id])
+
+  if (authLoading) return null
+  if (!currentUser) return <Navigate to="/login" state={{ from: location }} replace />
 
   if (loading) {
     return (
@@ -117,29 +122,7 @@ export default function UserProfilePage() {
           {photos.length === 0 ? (
             <p className="text-sm text-gray-400 py-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">No approved photos yet.</p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {photos.map((photo) => (
-                <Link
-                  key={photo._id}
-                  to={`/photos/${photo._id}`}
-                  className="group block rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:shadow-md transition-shadow"
-                >
-                  <div className="aspect-square overflow-hidden bg-gray-100">
-                    <img
-                      src={photo.thumbnailUrl || photo.imageUrl}
-                      alt={photo.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-2">
-                    <p className="text-xs font-medium text-gray-700 truncate">{photo.title}</p>
-                    {photo.avgRating > 0 && (
-                      <p className="text-xs text-amber-500">★ {photo.avgRating}</p>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <GalleryGrid photos={photos} categories={[]} />
           )}
         </section>
 
