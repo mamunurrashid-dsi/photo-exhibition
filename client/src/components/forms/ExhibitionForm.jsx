@@ -6,27 +6,23 @@ import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import Button from '../ui/Button'
 
-const baseSchema = z.object({
-  type: z.enum(['online', 'offline']),
+// Single permissive schema — type-specific required fields validated manually
+// .nullish() used for fields that may come back as null from the server
+const schema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   organizerName: z.string().min(2, 'Organizer name is required'),
-  description: z.string().optional(),
-})
-
-const onlineSchema = baseSchema.extend({
-  visibility: z.enum(['public', 'private']),
-  allowedEmailDomain: z.string().optional(),
-  allowSubmissionFromOthers: z.boolean().optional(),
-  submissionStartDate: z.string().min(1, 'Start date is required'),
-  submissionEndDate: z.string().min(1, 'End date is required'),
-})
-
-const offlineSchema = baseSchema.extend({
-  venueAddress: z.string().min(2, 'Venue address is required'),
-  venueCity: z.string().optional(),
-  venueCountry: z.string().optional(),
-  exhibitionStartDate: z.string().min(1, 'Start date is required'),
-  exhibitionEndDate: z.string().min(1, 'End date is required'),
+  description: z.string().nullish(),
+  visibility: z.enum(['public', 'private']).nullish(),
+  allowedEmailDomain: z.string().nullish(),
+  allowSubmissionFromOthers: z.boolean().nullish(),
+  submissionStartDate: z.string().nullish(),
+  submissionEndDate: z.string().nullish(),
+  venueAddress: z.string().nullish(),
+  venueCity: z.string().nullish(),
+  venueCountry: z.string().nullish(),
+  venueMapLink: z.string().nullish(),
+  exhibitionStartDate: z.string().nullish(),
+  exhibitionEndDate: z.string().nullish(),
 })
 
 export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }) {
@@ -36,16 +32,15 @@ export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }
   const [coverPreview, setCoverPreview] = useState(defaultValues.coverImageUrl || null)
   const fileRef = useRef()
 
-  const schema = type === 'online' ? onlineSchema : offlineSchema
-
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
+    setError,
   } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { type, ...defaultValues },
+    defaultValues,
   })
 
   const addCategory = () => {
@@ -64,18 +59,26 @@ export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }
   }
 
   const handleFormSubmit = (data) => {
+    // Manual validation for type-specific required fields
+    let hasError = false
+    if (type === 'online') {
+      if (!data.submissionStartDate) { setError('submissionStartDate', { message: 'Start date is required' }); hasError = true }
+      if (!data.submissionEndDate) { setError('submissionEndDate', { message: 'End date is required' }); hasError = true }
+    } else {
+      if (!data.venueAddress?.trim()) { setError('venueAddress', { message: 'Venue address is required' }); hasError = true }
+      if (!data.exhibitionStartDate) { setError('exhibitionStartDate', { message: 'Start date is required' }); hasError = true }
+      if (!data.exhibitionEndDate) { setError('exhibitionEndDate', { message: 'End date is required' }); hasError = true }
+    }
+    if (hasError) return
+
     const formData = new FormData()
+    formData.append('type', type)
     Object.entries(data).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') formData.append(k, v)
     })
     formData.append('categories', JSON.stringify(categories))
     if (fileRef.current?.files[0]) {
       formData.append('coverImage', fileRef.current.files[0])
-    }
-    if (type === 'offline') {
-      formData.append('venue[address]', data.venueAddress || '')
-      formData.append('venue[city]', data.venueCity || '')
-      formData.append('venue[country]', data.venueCountry || '')
     }
     onSubmit(formData)
   }
@@ -106,7 +109,6 @@ export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }
             </button>
           ))}
         </div>
-        <input type="hidden" value={type} {...register('type')} />
       </div>
 
       {/* Shared fields */}
@@ -315,6 +317,16 @@ export default function ExhibitionForm({ defaultValues = {}, onSubmit, loading }
               <label className={labelClass}>Country</label>
               <input type="text" {...register('venueCountry')} className={inputClass} />
             </div>
+          </div>
+          <div>
+            <label className={labelClass}>Google Maps Link</label>
+            <input
+              type="url"
+              {...register('venueMapLink')}
+              className={inputClass}
+              placeholder="https://maps.google.com/..."
+            />
+            <p className="text-xs text-gray-400 mt-1">Optional — paste a Google Maps share link for the venue.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

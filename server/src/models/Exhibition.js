@@ -71,6 +71,7 @@ const exhibitionSchema = new mongoose.Schema(
       address: String,
       city: String,
       country: String,
+      mapLink: String,
     },
     exhibitionStartDate: {
       type: Date,

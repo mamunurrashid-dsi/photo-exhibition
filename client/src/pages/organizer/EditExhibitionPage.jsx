@@ -23,6 +23,7 @@ export default function EditExhibitionPage() {
           ex.venueAddress = ex.venue.address || ''
           ex.venueCity = ex.venue.city || ''
           ex.venueCountry = ex.venue.country || ''
+          ex.venueMapLink = ex.venue.mapLink || ''
         }
         // Format dates for date inputs
         if (ex.submissionStartDate)

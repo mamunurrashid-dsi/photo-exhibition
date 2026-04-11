@@ -155,6 +155,19 @@ export async function createExhibition(req, res, next) {
       }
     }
 
+    if (data.type === 'offline') {
+      data.venue = {
+        address: data.venueAddress || '',
+        city: data.venueCity || '',
+        country: data.venueCountry || '',
+        ...(data.venueMapLink && { mapLink: data.venueMapLink }),
+      }
+      delete data.venueAddress
+      delete data.venueCity
+      delete data.venueCountry
+      delete data.venueMapLink
+    }
+
     // Apply approval flow if feature is enabled
     if (FEATURES.REQUIRE_EXHIBITION_APPROVAL) {
       data.status = 'pending_approval'
@@ -218,6 +231,19 @@ export async function updateExhibition(req, res, next) {
       } catch {
         updates.categories = updates.categories.split(',').map((c) => c.trim().toLowerCase())
       }
+    }
+
+    if (updates.type === 'offline' || exhibition.type === 'offline') {
+      updates.venue = {
+        address: updates.venueAddress || '',
+        city: updates.venueCity || '',
+        country: updates.venueCountry || '',
+        ...(updates.venueMapLink && { mapLink: updates.venueMapLink }),
+      }
+      delete updates.venueAddress
+      delete updates.venueCity
+      delete updates.venueCountry
+      delete updates.venueMapLink
     }
 
     const updated = await Exhibition.findByIdAndUpdate(req.params.id, updates, { new: true })
