@@ -234,6 +234,48 @@ export async function approveSubmission(req, res, next) {
   }
 }
 
+export async function unapproveSubmission(req, res, next) {
+  try {
+    const { reason } = req.body
+    const submission = await Submission.findById(req.params.id).populate('exhibition')
+    if (!submission) {
+      return res.status(404).json({ success: false, message: 'Submission not found' })
+    }
+
+    const exhibition = submission.exhibition
+    if (
+      exhibition.createdBy.toString() !== req.user._id.toString() &&
+      req.user.role !== 'admin'
+    ) {
+      return res.status(403).json({ success: false, message: 'Not authorized' })
+    }
+
+    if (submission.status !== 'approved') {
+      return res.status(400).json({ success: false, message: 'Only approved submissions can be unapproved' })
+    }
+
+    submission.status = 'pending'
+    submission.reviewedBy = undefined
+    submission.reviewedAt = undefined
+    submission.rejectionReason = undefined
+    await submission.save()
+
+    await Photo.updateMany({ submission: submission._id }, { status: 'pending' })
+
+    sendSubmissionStatusEmail(
+      submission.submitterEmail,
+      submission.submitterName,
+      exhibition.title,
+      'unapproved',
+      reason
+    ).catch(console.error)
+
+    res.json({ success: true, message: 'Submission unapproved' })
+  } catch (err) {
+    next(err)
+  }
+}
+
 export async function rejectSubmission(req, res, next) {
   try {
     const { reason } = req.body

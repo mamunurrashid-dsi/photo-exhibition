@@ -8,6 +8,7 @@ import {
   getSubmissions,
   getSubmission,
   approveSubmission,
+  unapproveSubmission,
   rejectSubmission,
   deleteSubmission,
 } from '../controllers/submission.controller.js'
@@ -25,6 +26,7 @@ router.get('/check', checkDuplicateSubmission)
 router.get('/exhibition/:exhibitionId', verifyToken, getSubmissions)
 router.get('/:id', verifyToken, getSubmission)
 router.patch('/:id/approve', verifyToken, approveSubmission)
+router.patch('/:id/unapprove', verifyToken, unapproveSubmission)
 router.patch('/:id/reject', verifyToken, rejectSubmission)
 router.delete('/:id', verifyToken, deleteSubmission)
 

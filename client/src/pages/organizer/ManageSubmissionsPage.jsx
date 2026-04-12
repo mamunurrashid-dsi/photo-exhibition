@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import {
   getSubmissions,
   approveSubmission,
+  unapproveSubmission,
   rejectSubmission,
   deleteSubmission,
 } from '../../api/submissions.api'
@@ -25,6 +26,7 @@ export default function ManageSubmissionsPage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('all')
   const [actionTarget, setActionTarget] = useState(null)
+  const [actionType, setActionType] = useState(null) // 'reject' | 'unapprove'
   const [rejectReason, setRejectReason] = useState('')
   const [acting, setActing] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState(null)
@@ -51,6 +53,22 @@ export default function ManageSubmissionsPage() {
       loadData()
     } catch {
       addToast('Failed to approve', 'error')
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleUnapprove = async () => {
+    if (!actionTarget) return
+    setActing(true)
+    try {
+      await unapproveSubmission(actionTarget._id, rejectReason)
+      addToast('Submission moved back to pending', 'success')
+      setActionTarget(null)
+      setRejectReason('')
+      loadData()
+    } catch {
+      addToast('Failed to unapprove', 'error')
     } finally {
       setActing(false)
     }
@@ -177,23 +195,23 @@ export default function ManageSubmissionsPage() {
               </div>
 
               {/* Actions */}
-              {sub.status === 'pending' && (
-                <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    loading={acting}
-                    onClick={() => handleApprove(sub._id)}
-                  >
-                    Approve
+              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                {sub.status === 'pending' && (
+                  <>
+                    <Button size="sm" variant="primary" loading={acting} onClick={() => handleApprove(sub._id)}>
+                      Approve
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => { setActionTarget(sub); setActionType('reject'); setRejectReason('') }}>
+                      Reject
+                    </Button>
+                  </>
+                )}
+                {sub.status === 'approved' && (
+                  <Button size="sm" variant="outline" onClick={() => { setActionTarget(sub); setActionType('unapprove'); setRejectReason('') }}>
+                    Unapprove
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => { setActionTarget(sub); setRejectReason('') }}
-                  >
-                    Reject
-                  </Button>
+                )}
+                {(sub.status === 'pending' || sub.status === 'rejected') && (
                   <Button
                     size="sm"
                     variant="ghost"
@@ -203,8 +221,8 @@ export default function ManageSubmissionsPage() {
                   >
                     Delete
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -232,29 +250,33 @@ export default function ManageSubmissionsPage() {
         )}
       </Modal>
 
-      {/* Reject modal */}
+      {/* Reject / Unapprove modal */}
       <Modal
         isOpen={!!actionTarget}
         onClose={() => setActionTarget(null)}
-        title="Reject Submission"
+        title={actionType === 'unapprove' ? 'Unapprove Submission' : 'Reject Submission'}
       >
         <p className="text-gray-600 text-sm mb-4">
-          You are rejecting the submission by <strong>{actionTarget?.submitterName}</strong>.
-          Optionally provide feedback.
+          {actionType === 'unapprove'
+            ? <>You are moving the submission by <strong>{actionTarget?.submitterName}</strong> back to pending. The submitter will be notified.</>
+            : <>You are rejecting the submission by <strong>{actionTarget?.submitterName}</strong>. Optionally provide feedback.</>
+          }
         </p>
         <textarea
           value={rejectReason}
           onChange={(e) => setRejectReason(e.target.value)}
-          placeholder="Reason for rejection (optional)"
+          placeholder={actionType === 'unapprove' ? 'Note for submitter (optional)' : 'Reason for rejection (optional)'}
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
         />
         <div className="flex gap-3 justify-end">
-          <Button variant="secondary" onClick={() => setActionTarget(null)}>
-            Cancel
-          </Button>
-          <Button variant="danger" loading={acting} onClick={handleReject}>
-            Reject
+          <Button variant="secondary" onClick={() => setActionTarget(null)}>Cancel</Button>
+          <Button
+            variant="danger"
+            loading={acting}
+            onClick={actionType === 'unapprove' ? handleUnapprove : handleReject}
+          >
+            {actionType === 'unapprove' ? 'Unapprove' : 'Reject'}
           </Button>
         </div>
       </Modal>

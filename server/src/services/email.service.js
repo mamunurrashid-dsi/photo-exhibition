@@ -99,16 +99,21 @@ export async function sendExhibitionRejectedEmail(to, organizerName, exhibitionT
 
 export async function sendSubmissionStatusEmail(to, submitterName, exhibitionTitle, status, reason) {
   const isApproved = status === 'approved'
+  const isUnapproved = status === 'unapproved'
   await transporter.sendMail({
     from: FROM,
     to,
-    subject: `Your submission to "${exhibitionTitle}" has been ${status}`,
+    subject: `Your submission to "${exhibitionTitle}" has been ${isUnapproved ? 'moved back to pending review' : status}`,
     html: `
-      <h2>Submission ${isApproved ? 'Approved! 🎉' : 'Not Selected'}</h2>
+      <h2>Submission ${isApproved ? 'Approved! 🎉' : isUnapproved ? 'Moved Back to Pending' : 'Not Selected'}</h2>
       <p>Hi ${submitterName},</p>
       ${
         isApproved
           ? `<p>Congratulations! Your submission to <strong>${exhibitionTitle}</strong> has been approved and is now visible in the gallery.</p>`
+          : isUnapproved
+          ? `<p>Your previously approved submission to <strong>${exhibitionTitle}</strong> has been moved back to pending review by the organizer.</p>
+             ${reason ? `<p><strong>Organizer note:</strong> ${reason}</p>` : ''}
+             <p>You will be notified once it has been reviewed again.</p>`
           : `<p>Thank you for submitting to <strong>${exhibitionTitle}</strong>. Unfortunately, your submission was not selected this time.</p>
              ${reason ? `<p><strong>Feedback:</strong> ${reason}</p>` : ''}`
       }
