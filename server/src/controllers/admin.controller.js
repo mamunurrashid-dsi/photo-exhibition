@@ -5,6 +5,7 @@ import Photo from '../models/Photo.js'
 import Rating from '../models/Rating.js'
 import Comment from '../models/Comment.js'
 import { deleteImage } from '../services/cloudinary.service.js'
+import { MODERATION } from '../config/configurations.js'
 import {
   sendExhibitionApprovedEmail,
   sendExhibitionRejectedEmail,
@@ -269,13 +270,13 @@ export async function getGroupedSubmissions(_req, res, next) {
 
 export async function getStalePhotos(_req, res, next) {
   try {
-    const cutoff = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
+    const cutoff = new Date(Date.now() - MODERATION.STALE_PENDING_DAYS * 24 * 60 * 60 * 1000)
     const photos = await Photo.find({ status: 'pending', createdAt: { $lte: cutoff } })
       .populate('exhibition', 'title')
       .populate('submission', 'submitterName submitterEmail')
       .sort({ createdAt: 1 })
       .lean()
-    res.json({ success: true, photos })
+    res.json({ success: true, photos, staleDays: MODERATION.STALE_PENDING_DAYS })
   } catch (err) {
     next(err)
   }

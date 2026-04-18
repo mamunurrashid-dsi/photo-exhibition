@@ -16,6 +16,7 @@ function daysSince(dateStr) {
 export default function AdminModerationPage() {
   const { addToast } = useToast()
   const [photos, setPhotos] = useState([])
+  const [staleDays, setStaleDays] = useState(15)
   const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -23,7 +24,10 @@ export default function AdminModerationPage() {
   const load = () => {
     setLoading(true)
     getAdminStalePhotos()
-      .then((res) => setPhotos(res.data.photos || []))
+      .then((res) => {
+        setPhotos(res.data.photos || [])
+        if (res.data.staleDays) setStaleDays(res.data.staleDays)
+      })
       .catch(() => addToast('Failed to load stale photos', 'error'))
       .finally(() => setLoading(false))
   }
@@ -61,7 +65,7 @@ export default function AdminModerationPage() {
       </div>
 
       <p className="text-sm text-gray-500 mb-6">
-        Photos that have been in <strong>pending</strong> state for more than 15 days — the organizer has not reviewed them.
+        Photos that have been in <strong>pending</strong> state for more than {staleDays} days — the organizer has not reviewed them.
         Deleting a photo here will permanently remove it from the storage server and notify the submitter by email.
       </p>
 
@@ -70,7 +74,7 @@ export default function AdminModerationPage() {
       ) : photos.length === 0 ? (
         <div className="text-center py-16 text-gray-500 bg-gray-50 rounded-xl">
           <p className="text-lg font-medium mb-1">All clear</p>
-          <p className="text-sm">No photos have been pending for more than 15 days.</p>
+          <p className="text-sm">No photos have been pending for more than {staleDays} days.</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -140,7 +144,7 @@ export default function AdminModerationPage() {
         <p className="text-sm text-gray-500 mb-6">
           This will permanently remove the photo from the storage server and send an email to{' '}
           <strong>{deleteTarget?.submission?.submitterName}</strong> ({deleteTarget?.submission?.submitterEmail}) letting
-          them know it was removed because it was pending for more than 15 days.
+          them know it was removed because it was pending for more than {staleDays} days.
         </p>
         <div className="flex gap-3 justify-end">
           <Button variant="secondary" onClick={() => setDeleteTarget(null)}>Cancel</Button>

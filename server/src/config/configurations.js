@@ -16,6 +16,13 @@ export const LIMITS = {
   MAX_AVATAR_FILE_SIZE: 5 * 1024 * 1024, // 5MB
 }
 
+// ─── Moderation Settings ─────────────────────────────────────────────────────
+export const MODERATION = {
+  // Number of days a photo can remain in pending state before it appears in
+  // the admin moderation queue as stale and eligible for deletion.
+  STALE_PENDING_DAYS: 15,
+}
+
 // ─── Feature Flags ───────────────────────────────────────────────────────────
 export const FEATURES = {
   // When true: new exhibitions start as 'pending_approval' and admins receive
