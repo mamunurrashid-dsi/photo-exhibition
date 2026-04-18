@@ -97,6 +97,21 @@ export async function sendExhibitionRejectedEmail(to, organizerName, exhibitionT
   })
 }
 
+export async function sendStalePendingPhotoDeletedEmail(to, submitterName, exhibitionTitle, photoTitle) {
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: `Your photo submission to "${exhibitionTitle}" was removed`,
+    html: `
+      <h2>Submission Removed</h2>
+      <p>Hi ${submitterName},</p>
+      <p>Your photo <strong>${photoTitle}</strong> submitted to <strong>${exhibitionTitle}</strong> has been removed by the platform administrators.</p>
+      <p>The submission was in a pending state for more than 15 days without being reviewed by the organizer.</p>
+      <p>If you have questions, please contact the platform administrators.</p>
+    `,
+  })
+}
+
 export async function sendSubmissionStatusEmail(to, submitterName, exhibitionTitle, status, reason) {
   const isApproved = status === 'approved'
   const isUnapproved = status === 'unapproved'

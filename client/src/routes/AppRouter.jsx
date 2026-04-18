@@ -31,6 +31,7 @@ const SubmissionFormPage = lazy(() => import('../pages/organizer/SubmissionFormP
 const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard'))
 const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage'))
 const AdminExhibitionsPage = lazy(() => import('../pages/admin/AdminExhibitionsPage'))
+const AdminSubmissionsPage = lazy(() => import('../pages/admin/AdminSubmissionsPage'))
 const AdminModerationPage = lazy(() => import('../pages/admin/AdminModerationPage'))
 const UserProfilePage = lazy(() => import('../pages/public/UserProfilePage'))
 const EditProfilePage = lazy(() => import('../pages/user/EditProfilePage'))
@@ -139,6 +140,14 @@ export default function AppRouter() {
               element={
                 <RoleRoute allowedRoles={['admin']}>
                   <AdminExhibitionsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/admin/submissions"
+              element={
+                <RoleRoute allowedRoles={['admin']}>
+                  <AdminSubmissionsPage />
                 </RoleRoute>
               }
             />

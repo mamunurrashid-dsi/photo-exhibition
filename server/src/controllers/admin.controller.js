@@ -8,6 +8,7 @@ import { deleteImage } from '../services/cloudinary.service.js'
 import {
   sendExhibitionApprovedEmail,
   sendExhibitionRejectedEmail,
+  sendStalePendingPhotoDeletedEmail,
 } from '../services/email.service.js'
 
 export async function getStats(_req, res, next) {
@@ -16,9 +17,9 @@ export async function getStats(_req, res, next) {
       User.countDocuments(),
       Exhibition.countDocuments(),
       Submission.countDocuments(),
-      Photo.countDocuments({ status: 'approved' }),
+      Photo.countDocuments({ status: 'pending' }),
     ])
-    res.json({ success: true, stats: { users, exhibitions, submissions, approvedPhotos: photos } })
+    res.json({ success: true, stats: { users, exhibitions, submissions, pendingPhotos: photos } })
   } catch (err) {
     next(err)
   }
@@ -220,6 +221,91 @@ export async function moderatePhoto(req, res, next) {
     if (!photo) return res.status(404).json({ success: false, message: 'Photo not found' })
 
     res.json({ success: true, photo })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function getGroupedSubmissions(_req, res, next) {
+  try {
+    // Aggregate submission counts grouped by exhibition
+    const groups = await Submission.aggregate([
+      {
+        $group: {
+          _id: '$exhibition',
+          total: { $sum: 1 },
+          pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
+          approved: { $sum: { $cond: [{ $eq: ['$status', 'approved'] }, 1, 0] } },
+          rejected: { $sum: { $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0] } },
+          latestSubmittedAt: { $max: '$createdAt' },
+        },
+      },
+      { $sort: { latestSubmittedAt: -1 } },
+    ])
+
+    const exhibitionIds = groups.map((g) => g._id)
+    const exhibitions = await Exhibition.find({ _id: { $in: exhibitionIds } })
+      .select('title type status')
+      .lean()
+
+    const exhibitionMap = Object.fromEntries(exhibitions.map((e) => [e._id.toString(), e]))
+
+    const result = groups
+      .filter((g) => exhibitionMap[g._id?.toString()])
+      .map((g) => ({
+        exhibition: exhibitionMap[g._id.toString()],
+        total: g.total,
+        pending: g.pending,
+        approved: g.approved,
+        rejected: g.rejected,
+        latestSubmittedAt: g.latestSubmittedAt,
+      }))
+
+    res.json({ success: true, groups: result })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function getStalePhotos(_req, res, next) {
+  try {
+    const cutoff = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
+    const photos = await Photo.find({ status: 'pending', createdAt: { $lte: cutoff } })
+      .populate('exhibition', 'title')
+      .populate('submission', 'submitterName submitterEmail')
+      .sort({ createdAt: 1 })
+      .lean()
+    res.json({ success: true, photos })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function deleteStalePhoto(req, res, next) {
+  try {
+    const photo = await Photo.findById(req.params.id)
+      .populate('exhibition', 'title')
+      .populate('submission', 'submitterName submitterEmail')
+
+    if (!photo) return res.status(404).json({ success: false, message: 'Photo not found' })
+    if (photo.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'Only pending photos can be deleted via moderation' })
+    }
+
+    const submitterEmail = photo.submission?.submitterEmail
+    const submitterName = photo.submission?.submitterName
+    const exhibitionTitle = photo.exhibition?.title
+
+    await deleteImage(photo.cloudinaryPublicId)
+    await Rating.deleteMany({ photo: photo._id })
+    await Comment.deleteMany({ photo: photo._id })
+    await photo.deleteOne()
+
+    if (submitterEmail) {
+      sendStalePendingPhotoDeletedEmail(submitterEmail, submitterName, exhibitionTitle, photo.title).catch(console.error)
+    }
+
+    res.json({ success: true, message: 'Photo deleted and submitter notified' })
   } catch (err) {
     next(err)
   }
