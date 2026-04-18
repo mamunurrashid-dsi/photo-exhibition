@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getMyExhibitions, deleteExhibition } from '../../api/exhibitions.api'
+import { getMyExhibitions, deleteExhibition, toggleExhibitionStatus } from '../../api/exhibitions.api'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -14,6 +14,7 @@ export default function OrganizerDashboard() {
   const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [togglingId, setTogglingId] = useState(null)
   const { addToast } = useToast()
 
   const load = () => {
@@ -38,6 +39,19 @@ export default function OrganizerDashboard() {
       addToast('Failed to delete exhibition', 'error')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleToggleStatus = async (ex) => {
+    setTogglingId(ex._id)
+    try {
+      await toggleExhibitionStatus(ex._id)
+      addToast(ex.status === 'active' ? 'Exhibition closed.' : 'Exhibition reopened.', 'success')
+      load()
+    } catch {
+      addToast('Failed to update exhibition status', 'error')
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -152,6 +166,15 @@ export default function OrganizerDashboard() {
                         >
                           Edit
                         </Link>
+                        {(ex.status === 'active' || ex.status === 'closed') && (
+                          <button
+                            onClick={() => handleToggleStatus(ex)}
+                            disabled={togglingId === ex._id}
+                            className={`text-xs hover:underline disabled:opacity-50 ${ex.status === 'active' ? 'text-amber-600' : 'text-green-600'}`}
+                          >
+                            {togglingId === ex._id ? '...' : ex.status === 'active' ? 'Close' : 'Reopen'}
+                          </button>
+                        )}
                         <button
                           onClick={() => setDeleteTarget(ex)}
                           className="text-xs text-red-500 hover:underline"

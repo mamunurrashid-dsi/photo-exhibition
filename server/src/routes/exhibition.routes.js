@@ -11,6 +11,7 @@ import {
   createExhibition,
   updateExhibition,
   deleteExhibition,
+  toggleExhibitionStatus,
 } from '../controllers/exhibition.controller.js'
 
 const router = Router()
@@ -23,6 +24,7 @@ router.get('/:id', getExhibition)
 router.get('/:id/gallery', getExhibitionGallery)
 router.post('/', verifyToken, coverUpload.single('coverImage'), createExhibition)
 router.put('/:id', verifyToken, coverUpload.single('coverImage'), updateExhibition)
+router.patch('/:id/toggle-status', verifyToken, toggleExhibitionStatus)
 router.delete('/:id', verifyToken, deleteExhibition)
 
 export default router

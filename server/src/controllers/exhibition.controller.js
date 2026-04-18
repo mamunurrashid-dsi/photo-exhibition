@@ -112,6 +112,13 @@ export async function verifyPrivateAccess(req, res, next) {
 
 export async function getExhibitionGallery(req, res, next) {
   try {
+    const exhibition = await Exhibition.findById(req.params.id).select("status")
+    if (!exhibition) return res.status(404).json({ success: false, message: "Exhibition not found" })
+    if (exhibition.status === "closed") return res.json({ success: true, photos: [], closed: true })
+  } catch (err) { return next(err) }
+
+  // original try block:
+  try {
     const { category } = req.query
     const filter = { exhibition: req.params.id, status: 'approved' }
     if (category) filter.category = category.toLowerCase()
@@ -248,6 +255,37 @@ export async function updateExhibition(req, res, next) {
 
     const updated = await Exhibition.findByIdAndUpdate(req.params.id, updates, { new: true })
     res.json({ success: true, exhibition: updated })
+  } catch (err) {
+    next(err)
+  }
+}
+
+
+export async function toggleExhibitionStatus(req, res, next) {
+  try {
+    const exhibition = await Exhibition.findById(req.params.id)
+    if (!exhibition) {
+      return res.status(404).json({ success: false, message: 'Exhibition not found' })
+    }
+
+    if (
+      exhibition.createdBy.toString() !== req.user._id.toString() &&
+      req.user.role !== 'admin'
+    ) {
+      return res.status(403).json({ success: false, message: 'Not authorized' })
+    }
+
+    if (!['active', 'closed'].includes(exhibition.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only active or closed exhibitions can be toggled.',
+      })
+    }
+
+    exhibition.status = exhibition.status === 'active' ? 'closed' : 'active'
+    await exhibition.save()
+
+    res.json({ success: true, exhibition })
   } catch (err) {
     next(err)
   }

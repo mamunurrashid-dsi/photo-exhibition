@@ -15,5 +15,6 @@ export const updateExhibition = (id, data) =>
     headers: { 'Content-Type': 'multipart/form-data' },
   })
 export const deleteExhibition = (id) => api.delete(`/exhibitions/${id}`)
+export const toggleExhibitionStatus = (id) => api.patch(`/exhibitions/${id}/toggle-status`)
 export const checkPrivateAccess = (token, email) =>
   api.post(`/exhibitions/private/${token}/verify`, { email })

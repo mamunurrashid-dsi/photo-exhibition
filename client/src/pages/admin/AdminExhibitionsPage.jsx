@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAdminExhibitions, deleteAdminExhibition, moderateExhibition } from '../../api/admin.api'
+import { toggleExhibitionStatus } from '../../api/exhibitions.api'
 import PageWrapper from '../../components/layout/PageWrapper'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -31,6 +32,7 @@ export default function AdminExhibitionsPage() {
   const [moderateTarget, setModerateTarget] = useState(null) // { ex, action }
   const [rejectReason, setRejectReason] = useState('')
   const [moderating, setModerating] = useState(false)
+  const [togglingId, setTogglingId] = useState(null)
 
   const load = () => {
     setLoading(true)
@@ -81,6 +83,19 @@ export default function AdminExhibitionsPage() {
       addToast('Failed to update exhibition status', 'error')
     } finally {
       setModerating(false)
+    }
+  }
+
+  const handleToggleStatus = async (ex) => {
+    setTogglingId(ex._id)
+    try {
+      await toggleExhibitionStatus(ex._id)
+      addToast(ex.status === 'active' ? 'Exhibition closed.' : 'Exhibition reopened.', 'success')
+      load()
+    } catch {
+      addToast('Failed to update exhibition status', 'error')
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -185,6 +200,15 @@ export default function AdminExhibitionsPage() {
                               Reject
                             </button>
                           </>
+                        )}
+                        {(ex.status === 'active' || ex.status === 'closed') && (
+                          <button
+                            onClick={() => handleToggleStatus(ex)}
+                            disabled={togglingId === ex._id}
+                            className={`text-xs font-medium hover:underline disabled:opacity-50 ${ex.status === 'active' ? 'text-amber-600' : 'text-green-600'}`}
+                          >
+                            {togglingId === ex._id ? '...' : ex.status === 'active' ? 'Close' : 'Reopen'}
+                          </button>
                         )}
                         <Link to={`/exhibitions/${ex._id}`} className="text-xs text-indigo-600 hover:underline">View</Link>
                         <button onClick={() => setDeleteTarget(ex)} className="text-xs text-red-500 hover:underline">Delete</button>
