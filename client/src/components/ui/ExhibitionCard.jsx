@@ -22,7 +22,7 @@ export default function ExhibitionCard({ exhibition }) {
   } = exhibition
 
   const submissionOpen =
-    type === 'online' && isSubmissionOpen(submissionStartDate, submissionEndDate)
+    type === 'online' && status !== 'closed' && isSubmissionOpen(submissionStartDate, submissionEndDate)
 
   return (
     <Link

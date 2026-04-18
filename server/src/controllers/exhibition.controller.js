@@ -56,6 +56,17 @@ export async function getExhibition(req, res, next) {
       return res.status(404).json({ success: false, message: 'Exhibition not found' })
     }
 
+    // Auto-close offline exhibitions whose end date has passed
+    if (
+      exhibition.type === 'offline' &&
+      exhibition.status === 'active' &&
+      exhibition.exhibitionEndDate &&
+      new Date(exhibition.exhibitionEndDate) < new Date()
+    ) {
+      exhibition.status = 'closed'
+      await exhibition.save()
+    }
+
     const data = exhibition.toObject()
     if (exhibition.visibility === 'private') {
       delete data.privateToken

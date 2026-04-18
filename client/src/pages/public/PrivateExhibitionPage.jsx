@@ -84,7 +84,7 @@ export default function PrivateExhibitionPage() {
     description,
   } = exhibition
 
-  const submissionOpen = isSubmissionOpen(submissionStartDate, submissionEndDate)
+  const submissionOpen = status !== 'closed' && isSubmissionOpen(submissionStartDate, submissionEndDate)
 
   return (
     <div>

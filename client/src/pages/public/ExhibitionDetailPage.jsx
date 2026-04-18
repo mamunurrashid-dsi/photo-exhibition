@@ -63,7 +63,7 @@ export default function ExhibitionDetailPage() {
     venue,
   } = exhibition
 
-  const submissionOpen = type === 'online' && isSubmissionOpen(submissionStartDate, submissionEndDate)
+  const submissionOpen = type === 'online' && status !== 'closed' && isSubmissionOpen(submissionStartDate, submissionEndDate)
 
   return (
     <div>
